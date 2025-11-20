@@ -1,16 +1,17 @@
 import { useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
+import Home from './pages/Home.jsx'
+import Login from './pages/Login.jsx'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+function App() { 
 
   return (
     <Routes>
-      <Route path='/' element={<h1>Hello World!</h1>} />
-      <Route path='/about' element={<h1>About Page</h1>} />
+      <Route path='/' element={<Home />} />
+      <Route path='/Login' element={<Login />} />
     </Routes>
   )
 }
