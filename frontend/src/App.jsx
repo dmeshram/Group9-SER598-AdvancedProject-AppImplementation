@@ -3,6 +3,7 @@ import { Route, Routes, Link } from 'react-router-dom'
 import reactLogo from './assets/react.svg'
 import './App.css'
 import ProfileSettings from './pages/ProfileSettings.jsx'
+import Leaderboard from './pages/Leaderboard.jsx'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -16,6 +17,7 @@ function App() {
           <Link to="/">Home</Link>
           <Link to="/about">About</Link>
           <Link to="/profile">Profile</Link>
+          <Link to="/leaderboard">Leaderboard</Link>
         </nav>
       </header>
 
@@ -24,6 +26,7 @@ function App() {
           <Route path="/" element={<h1>Hello World!</h1>} />
           <Route path="/about" element={<h1>About Page</h1>} />
           <Route path="/profile" element={<ProfileSettings />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
         </Routes>
       </main>
     </div>
