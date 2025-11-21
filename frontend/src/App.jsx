@@ -15,7 +15,6 @@ function App() {
           <nav className="app-nav">
             <Link to="/">Home</Link>
             <Link to="/about">About</Link>
-            <Link to="/profile">Profile</Link>
             <Link to="/leaderboard">Leaderboard</Link>
           </nav>
         </header>
@@ -24,7 +23,6 @@ function App() {
           <Routes>
             <Route path="/" element={<h1>Hello World!</h1>} />
             <Route path="/about" element={<h1>About Page</h1>} />
-            <Route path="/profile" element={<ProfileSettings />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
           </Routes>
         </main>

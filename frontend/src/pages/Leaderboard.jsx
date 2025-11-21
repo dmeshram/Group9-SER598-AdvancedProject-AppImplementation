@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react'
-import './Leaderboard.css' // or move styles into App.css if you prefer
 
 const MOCK_USERS = [
   {
