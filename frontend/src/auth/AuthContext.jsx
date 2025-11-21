@@ -24,20 +24,30 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const loginWithGoogle = (cred) => {
-    if (!cred) return;
-    const payloadJson = atob(cred.split(".")[1]);
-    const payload = JSON.parse(payloadJson);
-    const userData = {
-        userId: payload.sub,
-        name: payload.name,
-        email: payload.email,
-        picture: payload.picture,
-    };
-    setUser(userData);
-    setToken(cred);
-    localStorage.setItem(USER_KEY, JSON.stringify(userData));
-    localStorage.setItem(TOKEN_KEY, cred);
+  const loginWithGoogle = async (cred) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/google`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credential: cred }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to authenticate");
+      }
+      const data = await response.json();
+      setUser(data.user);
+      setToken(data.token);
+
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      localStorage.setItem(TOKEN_KEY, data.token);
+    } catch (err) {
+      console.error("Google login error:", err);
+      throw err;
+    }
   };
 
   const logout = () => {

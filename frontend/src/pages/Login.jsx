@@ -35,9 +35,9 @@ export default function Login() {
             }
             window.google.accounts.id.initialize({
                 client_id: GOOGLE_CLIENT_ID,
-                callback: (response) => {
+                callback: async (response) => {
                     try {
-                        loginWithGoogle(response.credential);
+                        await loginWithGoogle(response.credential);
                         navigation('/', {replace: true});
                     } catch (error) {
                         console.error('Google login failed:', error);
@@ -79,7 +79,7 @@ export default function Login() {
                 <label>Password:
                     <input type='password' value={password} placeholder='Enter your password' onChange={(e) => setPassword(e.target.value)} required />
                 </label>
-                <button type='submit' className='login-submit' disabled={navigation.state === 'submitting'}>
+                <button type='submit' className='login-submit'>
                     Login
                 </button>
                 <div id='google-signin-button' style={{marginTop: '20px', display: 'flex', justifyContent: 'center'}} />

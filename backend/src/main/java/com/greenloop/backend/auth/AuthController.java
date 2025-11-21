@@ -15,15 +15,18 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final LocalJwtService jwtService;
     private final AuthTokenResolver tokenResolver;
+    private final GoogleTokenVerifierService googleTokenVerifierService;
 
     public AuthController(UserRepository userRepo,
                           PasswordEncoder passwordEncoder,
                           LocalJwtService jwtService,
-                          AuthTokenResolver tokenResolver) {
+                          AuthTokenResolver tokenResolver,
+                          GoogleTokenVerifierService googleTokenVerifierService) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.tokenResolver = tokenResolver;
+        this.googleTokenVerifierService = googleTokenVerifierService;
     }
 
     @PostMapping("/register")
@@ -58,6 +61,30 @@ public class AuthController {
         );
     }
 
+    @PostMapping("/google")
+    public LoginResponse googleLogin(@RequestBody GoogleLoginRequest req){
+        var googleUser = googleTokenVerifierService.verify(req.credentials());
+        var existingGoogleId = userRepo.findByGoogleId(googleUser.userId());
+        UserEntity user;
+        if (existingGoogleId.isPresent()) {
+            user = existingGoogleId.get();
+        } else {
+            var existsByEmail = userRepo.findByEmail(googleUser.email().toLowerCase());
+            if (existsByEmail.isPresent()) {
+                user = existsByEmail.get();
+                user.setGoogleId(googleUser.userId());
+            } else {
+                user = new UserEntity();
+                user.setGoogleId(googleUser.userId());
+                user.setEmail(googleUser.email().toLowerCase());
+                user.setName(googleUser.name());
+            }
+            userRepo.save(user);
+        }
+        String token = jwtService.generateToken(user.getId(), user.getEmail());
+        return new LoginResponse(token, new LoginUserDto(user.getId(), user.getName(), user.getEmail()));
+    }
+
     @GetMapping("/me")
     public AuthTokenResolver.AuthenticatedUser me(@RequestHeader("Authorization") String authHeader) {
         String token = extractBearer(authHeader);
@@ -75,4 +102,5 @@ public class AuthController {
     public record LoginRequest(String email, String password) {}
     public record LoginUserDto(Long id, String name, String email) {}
     public record LoginResponse(String token, LoginUserDto user) {}
+    public record GoogleLoginRequest (String credentials) {}
 }
