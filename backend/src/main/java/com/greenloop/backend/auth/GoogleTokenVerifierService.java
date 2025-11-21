@@ -20,25 +20,29 @@ public class GoogleTokenVerifierService {
     }
 
     public GoogleUserInfo verify(String idTokenString) {
-        GoogleIdToken googleIdToken;
-        try {
-            googleIdToken = verifier.verify(idTokenString);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid Google ID token", e);
-        }
+        if (idTokenString == null || idTokenString.isBlank()) {
+        throw new IllegalArgumentException("Missing Google ID token");
+    }
 
-        if (googleIdToken == null) {
-            throw new IllegalArgumentException("Invalid Google ID token");
-        }
+    GoogleIdToken googleIdToken;
+    try {
+        googleIdToken = verifier.verify(idTokenString);
+    } catch (Exception e) {
+        throw new IllegalArgumentException("Invalid Google ID token", e);
+    }
 
-        GoogleIdToken.Payload payload = googleIdToken.getPayload();
+    if (googleIdToken == null) {
+        throw new IllegalArgumentException("Invalid Google ID token");
+    }
 
-        String userId = payload.getSubject();
-        String email = payload.getEmail();
-        String name = (String) payload.get("name");
-        String picture = (String) payload.get("picture");
+    GoogleIdToken.Payload payload = googleIdToken.getPayload();
 
-        return new GoogleUserInfo(userId, email, name, picture);
+    String userId = payload.getSubject();
+    String email = payload.getEmail();
+    String name = (String) payload.get("name");
+    String picture = (String) payload.get("picture");
+
+    return new GoogleUserInfo(userId, email, name, picture);
     }
 
     public record GoogleUserInfo(String userId, String email, String name, String picture) {}

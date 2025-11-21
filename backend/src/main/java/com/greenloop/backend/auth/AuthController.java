@@ -63,7 +63,10 @@ public class AuthController {
 
     @PostMapping("/google")
     public LoginResponse googleLogin(@RequestBody GoogleLoginRequest req){
-        var googleUser = googleTokenVerifierService.verify(req.credentials());
+        if (req.credential() == null || req.credential().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing Google credential");
+        }
+        var googleUser = googleTokenVerifierService.verify(req.credential());
         var existingGoogleId = userRepo.findByGoogleId(googleUser.userId());
         UserEntity user;
         if (existingGoogleId.isPresent()) {
@@ -102,5 +105,5 @@ public class AuthController {
     public record LoginRequest(String email, String password) {}
     public record LoginUserDto(Long id, String name, String email) {}
     public record LoginResponse(String token, LoginUserDto user) {}
-    public record GoogleLoginRequest (String credentials) {}
+    public record GoogleLoginRequest (String credential) {}
 }
