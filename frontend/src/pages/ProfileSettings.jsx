@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import './ProfileSettings.css' // optional; see CSS below or move styles to App.css
 
 const initialProfile = {
   name: 'Jane Doe',
