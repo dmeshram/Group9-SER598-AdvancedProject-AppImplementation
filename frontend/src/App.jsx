@@ -7,8 +7,9 @@ import reactLogo from './assets/react.svg'
 import './App.css'
 import ProfileSettings from './pages/ProfileSettings.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
+import AchievementsPage from './pages/AchievementPage.jsx'
 
-function App() { 
+function App() {
 
   return (
     <>
@@ -17,11 +18,12 @@ function App() {
         <Routes>
           <Route path='/' element={<Home />} />
           <Route path='/login' element={<Login />} />
-           <Route path="/profile" element={<ProfileSettings />} />
+          <Route path="/profile" element={<ProfileSettings />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/achievements" element={<AchievementsPage />} />
         </Routes>
       </div>
-     </>
+    </>
   )
 }
 
