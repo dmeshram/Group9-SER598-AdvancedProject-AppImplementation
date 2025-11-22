@@ -1,35 +1,27 @@
 import { useState } from 'react'
 import { Route, Routes, Link } from 'react-router-dom'
+import Navigation from './components/Navigation.jsx'
+import Home from './pages/Home.jsx'
+import Login from './pages/Login.jsx'
 import reactLogo from './assets/react.svg'
 import './App.css'
 import ProfileSettings from './pages/ProfileSettings.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
 
-function App() {
-  const [count, setCount] = useState(0)
+function App() { 
 
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <div className="app-brand">GreenLoop</div>
-
-        <nav className="app-nav">
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-          <Link to="/profile">Profile</Link>
-          <Link to="/leaderboard">Leaderboard</Link>
-        </nav>
-      </header>
-
-      <main className="app-main">
+    <>
+      <Navigation />
+      <div className='content-container'>
         <Routes>
-          <Route path="/" element={<h1>Hello World!</h1>} />
-          <Route path="/about" element={<h1>About Page</h1>} />
-          <Route path="/profile" element={<ProfileSettings />} />
+          <Route path='/' element={<Home />} />
+          <Route path='/login' element={<Login />} />
+           <Route path="/profile" element={<ProfileSettings />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
         </Routes>
-      </main>
-    </div>
+      </div>
+     </>
   )
 }
 
