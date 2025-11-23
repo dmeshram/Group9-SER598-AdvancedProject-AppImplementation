@@ -1,22 +1,83 @@
-import React, { useState } from "react";
+// src/pages/AchievementsPage.jsx
+import React, { useMemo, useState } from "react";
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import Button from "react-bootstrap/Button";
+import AchievementCard from "../components/Achievements/AchievementCard";
+import AddGoalModal from "../components/Achievements/AddGoalModal";
+import useLocalStorage from "../hooks/useLocalStorage";
+
+const DEFAULT_GOALS = [
+    { id: "g1", title: "First Login", description: "Login at least once.", required: 1, icon: "trophy" },
+    { id: "g2", title: "Weekly Streak: 3 days", description: "Use the app 3 days in a week.", required: 3, icon: "medal" },
+    { id: "g3", title: "Achiever", description: "Complete 10 tasks", required: 10, icon: "star" },
+];
 
 export default function AchievementsPage() {
-    const [achievements, setAchievements] = useState([
-        { title: "First Login", description: "Logged in successfully!", icon: "🏆" },
-        { title: "Top Scorer", description: "Reached 100 points!", icon: "🥇" },
-    ]);
+    // persisted goals & user progress
+    const [goals, setGoals] = useLocalStorage("ach_goals", DEFAULT_GOALS);
+    // user progress array of { goalId, progress, unlockedAt? }
+    const [userProgress, setUserProgress] = useLocalStorage("ach_user_progress", []);
+
+    const [showAdd, setShowAdd] = useState(false);
+
+    const progressByGoal = useMemo(() => {
+        const map = {};
+        userProgress.forEach(p => { map[p.goalId] = p.progress; });
+        return map;
+    }, [userProgress]);
+
+    const handleAddGoal = (goal) => {
+        setGoals(prev => [goal, ...prev]);
+    };
+
+    const handleIncrement = (goalId, by = 1) => {
+        setUserProgress(prev => {
+            const exists = prev.find(p => p.goalId === goalId);
+            if (exists) {
+                return prev.map(p => p.goalId === goalId ? { ...p, progress: p.progress + by, unlockedAt: (p.progress + by) >= (goals.find(g => g.id === goalId)?.required || Infinity) ? new Date().toISOString() : p.unlockedAt } : p);
+            } else {
+                const unlockedAt = (by >= (goals.find(g => g.id === goalId)?.required || Infinity)) ? new Date().toISOString() : undefined;
+                return [...prev, { goalId, progress: by, unlockedAt }];
+            }
+        });
+    };
+
+    const handleSetProgress = (goalId, value) => {
+        setUserProgress(prev => prev.map(p => p.goalId === goalId ? { ...p, progress: value } : p));
+    };
+
+    const resetAll = () => {
+        if (window.confirm("Reset all user progress?")) {
+            setUserProgress([]);
+        }
+    };
 
     return (
-        <div style={{ padding: "1rem" }}>
-            <h1>Achievements</h1>
-            <ul>
-                {achievements.map((a, i) => (
-                    <li key={i} style={{ margin: "10px 0" }}>
-                        <span style={{ fontSize: "1.5rem", marginRight: "8px" }}>{a.icon}</span>
-                        <strong>{a.title}</strong> — {a.description}
-                    </li>
+        <Container style={{ paddingTop: 90, paddingBottom: 40 }}>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <h2>Achievements</h2>
+                <div className="d-flex gap-2">
+                    <Button variant="outline-primary" onClick={() => setShowAdd(true)}>Add Goal</Button>
+                    <Button variant="outline-danger" onClick={resetAll}>Reset Progress</Button>
+                </div>
+            </div>
+
+            <Row xs={1} md={2} lg={3} className="g-3">
+                {goals.map(goal => (
+                    <Col key={goal.id}>
+                        <AchievementCard
+                            goal={goal}
+                            progress={progressByGoal[goal.id] || 0}
+                            onIncrement={(gid, by) => handleIncrement(gid, by)}
+                            onSetProgress={(gid, val) => handleSetProgress(gid, val)}
+                        />
+                    </Col>
                 ))}
-            </ul>
-        </div>
+            </Row>
+
+            <AddGoalModal show={showAdd} onClose={() => setShowAdd(false)} onAdd={handleAddGoal} />
+        </Container>
     );
 }
