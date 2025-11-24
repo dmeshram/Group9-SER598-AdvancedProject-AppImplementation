@@ -50,6 +50,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithEmailPassword = async (email, password) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json"},
+          body: JSON.stringify({email, password}),
+        }
+      );
+      if (!response.ok){
+        throw new Error("Invalid Credentials");
+      }
+      const data = await response.json();
+      setUser(data.user);
+      setToken(data.token);
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      localStorage.setItem(TOKEN_KEY, data.token);
+    } catch (error) {
+      console.error("Credentials login error", error);
+      throw error;
+    }
+  }
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -62,6 +86,7 @@ export const AuthProvider = ({ children }) => {
     token,
     isAuthenticated: !!user,
     loginWithGoogle,
+    loginWithEmailPassword,
     logout,
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
