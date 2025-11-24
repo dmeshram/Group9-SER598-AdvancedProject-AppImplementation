@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:5173")
 @Tag(name = "Authentication", description = "User login, registration, and Google OAuth")
 public class AuthController {
     private final UserRepository userRepo;

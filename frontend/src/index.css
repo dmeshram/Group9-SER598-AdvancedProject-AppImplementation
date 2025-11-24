@@ -153,6 +153,22 @@ button:focus-visible {
   background: #115e59;
 }
 
+.error-container {
+  margin-top: 10px;
+  color: red;
+}
+
+.message-container {
+  margin-top: 10px;
+  color: green;
+}
+
+.already-account {
+  margin-top: 10px;
+  text-decoration: underline;
+  color: black;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
