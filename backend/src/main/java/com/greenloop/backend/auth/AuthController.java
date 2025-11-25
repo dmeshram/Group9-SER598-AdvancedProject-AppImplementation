@@ -7,9 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:5173")
+@Tag(name = "Authentication", description = "User login, registration, and Google OAuth")
 public class AuthController {
     private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder;
@@ -30,6 +34,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @Operation(summary = "Register new user account")
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
         if (userRepo.existsByEmail(req.email().toLowerCase())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use");
@@ -45,6 +50,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "Login with email + password")
     public LoginResponse login(@RequestBody LoginRequest req) {
         var user = userRepo.findByEmail(req.email().toLowerCase())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
@@ -62,6 +68,7 @@ public class AuthController {
     }
 
     @PostMapping("/google")
+    @Operation(summary = "Login with Google OAuth")
     public LoginResponse googleLogin(@RequestBody GoogleLoginRequest req){
         if (req.credential() == null || req.credential().isBlank()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing Google credential");

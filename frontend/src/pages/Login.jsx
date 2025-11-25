@@ -1,11 +1,11 @@
 import {useState, useEffect} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {Link,useNavigate} from 'react-router-dom';
 import {useAuth} from '../auth/AuthContext.jsx';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 export default function Login() {
-    const {loginWithGoogle, isAuthenticated} = useAuth();
+    const {loginWithGoogle, loginWithEmailPassword, isAuthenticated} = useAuth();
     const navigation = useNavigate();
 
     const [email, setEmail] = useState('');
@@ -60,12 +60,17 @@ export default function Login() {
         };
     }, [loginWithGoogle, navigation]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('');
         setError('');
-        console.log('Login attempt with:', {email, password});
-        setMessage('Logged in successfully!');
+        try {
+            await loginWithEmailPassword(email, password);
+            setMessage('Logged in successfully!!');
+            navigation('/', { replace: true })
+        } catch (error) {
+            setError("Invalid Credentials.")
+        }
     }
 
     return (
@@ -84,6 +89,7 @@ export default function Login() {
                 </button>
                 <div id='google-signin-button' style={{marginTop: '20px', display: 'flex', justifyContent: 'center'}} />
             </form>
+            <p className='already-account'>Don't have an account?{" "} <Link to="/register">Register</Link></p>
         </div>
     );
 }
