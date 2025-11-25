@@ -55,17 +55,26 @@ export default function AchievementsPage() {
     };
 
     return (
-        <Container style={{ paddingTop: 90, paddingBottom: 40 }}>
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2>Achievements</h2>
-                <div className="d-flex gap-2">
-                    <Button variant="outline-primary" onClick={() => setShowAdd(true)}>Add Goal</Button>
-                    <Button variant="outline-danger" onClick={resetAll}>Reset Progress</Button>
+        <Container className="achievements-page">
+            <header className="achievements-header">
+                <div>
+                    <h1 className="page-title">Achievements</h1>
+                    <p className="section-subtitle">
+                        Track your sustainability milestones and goals.
+                    </p>
                 </div>
-            </div>
+                <div className="achievements-actions">
+                    <Button variant="outline-primary" onClick={() => setShowAdd(true)}>
+                        Add Goal
+                    </Button>
+                    <Button variant="outline-danger" onClick={resetAll}>
+                        Reset Progress
+                    </Button>
+                </div>
+            </header>
 
             <Row xs={1} md={2} lg={3} className="g-3">
-                {goals.map(goal => (
+                {goals.map((goal) => (
                     <Col key={goal.id}>
                         <AchievementCard
                             goal={goal}
@@ -77,7 +86,12 @@ export default function AchievementsPage() {
                 ))}
             </Row>
 
-            <AddGoalModal show={showAdd} onClose={() => setShowAdd(false)} onAdd={handleAddGoal} />
+            <AddGoalModal
+                show={showAdd}
+                onClose={() => setShowAdd(false)}
+                onAdd={handleAddGoal}
+            />
         </Container>
     );
+
 }
