@@ -18,7 +18,6 @@ export default function Navigation() {
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="ms-auto">
-                        <Nav.Link as={Link} to='/'>Home</Nav.Link>
                         {isAuthenticated ? (<></>) : (<Nav.Link as={Link} to='/landing'>Home</Nav.Link>)}
                         {!isAuthenticated ? (<Nav.Link href="/login">Login</Nav.Link>) : 
                         (<>
