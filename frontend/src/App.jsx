@@ -1,17 +1,36 @@
 import { useState } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, Link } from 'react-router-dom'
+import Navigation from './components/Navigation.jsx'
+import Home from './pages/Home.jsx'
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
 import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import ProfileSettings from './pages/ProfileSettings.jsx'
+import Leaderboard from './pages/Leaderboard.jsx'
+import History from "./pages/history.jsx";
+
+import AchievementsPage from './pages/AchievementPage.jsx'
+import Landing from './pages/Landing.jsx'
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
-    <Routes>
-      <Route path='/' element={<h1>Hello World!</h1>} />
-      <Route path='/about' element={<h1>About Page</h1>} />
-    </Routes>
+    <>
+      <Navigation />
+      <div className='content-container'>
+        <Routes>
+          <Route path='/' element={<Home />} />
+          <Route path='/landing' element={<Landing />} />
+          <Route path='/login' element={<Login />} />
+          <Route path='/register' element={<Register />} />
+          <Route path="/profile" element={<ProfileSettings />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/achievements" element={<AchievementsPage />} />
+        </Routes>
+      </div>
+    </>
   )
 }
 

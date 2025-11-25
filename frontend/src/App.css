@@ -11,9 +11,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -22,6 +24,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -39,4 +42,585 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Page layout */
+.leaderboard-page {
+  text-align: left;
+}
+
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Reuse existing page-title and section-subtitle styles from Profile page
+   If you don't have them yet, you can define: */
+.page-title {
+  font-size: 1.6rem;
+  margin-bottom: 0.25rem;
+}
+
+.section-subtitle {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* View toggle chips */
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.toggle-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  background: transparent;
+  cursor: pointer;
+}
+
+.toggle-chip--active {
+  border-color: transparent;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+}
+
+/* Two-column layout */
+.leaderboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+/* Cards (align with Profile page look & feel) */
+.leaderboard-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0.8rem;
+  padding: 1.4rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.small-label {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* Podium for top 3 */
+.podium-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.podium-card {
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  text-align: center;
+  position: relative;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.podium-card--gold {
+  border-color: #fbbf24;
+}
+
+.podium-card--silver {
+  border-color: #e5e7eb;
+}
+
+.podium-card--bronze {
+  border-color: #d97757;
+}
+
+.podium-rank {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 0.25rem;
+}
+
+.podium-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.podium-stat {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-top: 0.2rem;
+}
+
+.you-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(34, 197, 94, 0.16);
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.7rem;
+  margin-top: 0.35rem;
+}
+
+/* Avatar variations (relying on Profile page avatar style if present) */
+.avatar-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  font-weight: 700;
+}
+
+.avatar-circle--small {
+  width: 44px;
+  height: 44px;
+  font-size: 0.85rem;
+  margin: 0 auto;
+}
+
+.avatar-circle--tiny {
+  width: 30px;
+  height: 30px;
+  font-size: 0.75rem;
+  margin-right: 0.5rem;
+}
+
+/* Table */
+.leaderboard-table-wrapper {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  overflow: auto;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.leaderboard-table thead {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.leaderboard-table th {
+  font-weight: 500;
+  opacity: 0.9;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+.leaderboard-table tbody tr:nth-child(even) {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.row-current-user {
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+}
+
+.user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.user-name {
+  font-weight: 500;
+}
+
+.user-email {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.you-pill--inline {
+  margin-top: 0;
+}
+
+/* Sidebar summary */
+.leaderboard-sidebar-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.summary-block {
+  margin-bottom: 0.5rem;
+}
+
+.summary-label {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-bottom: 0.25rem;
+}
+
+.summary-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.summary-subvalue {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-left: 0.3rem;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.summary-card {
+  border-radius: 0.7rem;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  padding: 0.6rem 0.7rem;
+}
+
+.summary-tip {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  margin-top: 0.25rem;
+}
+
+/* Button styles (reuse from Profile page if you already added them) */
+.actions-row {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.primary-button,
+.secondary-button {
+  border-radius: 999px;
+  padding: 0.4rem 1.05rem;
+  border: 1px solid transparent;
+  font: inherit;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+}
+
+.secondary-button {
+  background: transparent;
+  border-color: rgba(148, 163, 184, 0.8);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .leaderboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .leaderboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .podium-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* App shell */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 0.75rem;
+}
+
+.app-brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.app-nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.app-nav a {
+  text-decoration: none;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.app-nav a:hover {
+  opacity: 1;
+}
+
+/* Main area */
+.app-main {
+  flex: 1;
+}
+
+/* Profile page layout */
+.profile-page {
+  text-align: left;
+  /* override App.css centering */
+}
+
+.page-title {
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
+.status-banner {
+  margin: 0.5rem 0 1rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.5rem;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  font-size: 0.85rem;
+}
+
+/* Two-column layout */
+.profile-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+/* Cards */
+.profile-card,
+.settings-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0.8rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Avatar */
+.avatar-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  font-size: 1.1rem;
+}
+
+/* Form controls */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.9rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+label {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+input,
+textarea,
+select {
+  border-radius: 0.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  padding: 0.5rem 0.6rem;
+  font: inherit;
+  background: rgba(15, 23, 42, 0.8);
+  color: inherit;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid #22c55e;
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+/* Settings group */
+.settings-group {
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 0.7rem;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.settings-group legend {
+  padding: 0 0.25rem;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+}
+
+/* Actions */
+.actions-row {
+  margin-top: 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.primary-button,
+.secondary-button {
+  border-radius: 999px;
+  padding: 0.45rem 1.1rem;
+  border: 1px solid transparent;
+  font: inherit;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+}
+
+.secondary-button {
+  background: transparent;
+  border-color: rgba(148, 163, 184, 0.8);
+}
+
+/* Responsive tweaks */
+@media (max-width: 900px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.graph-card {
+  background: #ffffff;
+  padding: 20px;
+  height: 250px;
+  border-radius: 12px;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+}
+
+.react-calendar {
+  width: 100%;
+  background: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.react-calendar__navigation button {
+  color: #333 !important;
+  font-size: 1rem;
+  font-weight: 600;
+  background: transparent !important;
+  border-radius: 8px;
+  padding: 6px;
+}
+
+.react-calendar__navigation button:disabled {
+  opacity: 0.3;
+}
+
+.react-calendar__month-view__weekdays__weekday {
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #444;
+  font-size: 0.75rem;
+}
+
+.react-calendar__tile {
+  padding: 10px 0px;
+  font-size: 0.9rem;
+  color: #222;
+}
+
+.react-calendar__tile:hover {
+  background: #e8f5e9 !important;
+  border-radius: 6px;
+}
+
+.react-calendar__tile--now {
+  background: #fff7d1 !important;
+  border-radius: 6px;
+}
+
+.react-calendar__tile--active {
+  background: #4caf50 !important;
+  color: white !important;
+  border-radius: 6px;
+}
+
+.calendar-tile-done {
+  background: #4caf50 !important;
+  color: white !important;
+  border-radius: 50% !important;
+}
+
+.react-calendar__tile.calendar-tile-done {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.react-calendar__month-view__days {
+  gap: 3px;
 }
