@@ -15,8 +15,8 @@ const MOCK_USERS = [
   },
   {
     id: 2,
-    name: 'Alex Green',
-    email: 'alex.green@example.com',
+    name: 'Max Verstappen',
+    email: 'max.verstappen@example.com',
     totalCarbonSavedKg: 168.5,
     weeklyPoints: 355,
     streakDays: 27,
@@ -27,8 +27,8 @@ const MOCK_USERS = [
   },
   {
     id: 3,
-    name: 'Sam Rivera',
-    email: 'sam.r@example.com',
+    name: 'Charles Leclerc',
+    email: 'charles.leclerc@example.com',
     totalCarbonSavedKg: 130.7,
     weeklyPoints: 298,
     streakDays: 16,
@@ -39,8 +39,8 @@ const MOCK_USERS = [
   },
   {
     id: 4,
-    name: 'Taylor Lee',
-    email: 'taylor.lee@example.com',
+    name: 'Carlos Sainz',
+    email: 'carlos.sainz@example.com',
     totalCarbonSavedKg: 101.3,
     weeklyPoints: 245,
     streakDays: 9,
@@ -51,8 +51,8 @@ const MOCK_USERS = [
   },
   {
     id: 5,
-    name: 'Jordan Patel',
-    email: 'jordan.p@example.com',
+    name: 'Lewis Hamilton',
+    email: 'lewis.hamilton@example.com',
     totalCarbonSavedKg: 88.9,
     weeklyPoints: 220,
     streakDays: 5,

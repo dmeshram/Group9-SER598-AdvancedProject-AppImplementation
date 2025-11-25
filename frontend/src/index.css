@@ -127,6 +127,7 @@ button:focus-visible {
 
 .login-form input {
   background: #212529;
+  color: white;
   padding: 0.5rem 0.6rem;
   border-radius: 0.5rem;
   border: 1px solid #d1d5db;

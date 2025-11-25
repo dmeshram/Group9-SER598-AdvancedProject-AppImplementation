@@ -47,14 +47,35 @@
 /* Page layout */
 .leaderboard-page {
   text-align: left;
+  max-width: 1100px;
+  margin: 5.5rem auto 3rem;
+  padding: 1.75rem 2rem 2.3rem;
+  border-radius: 1.25rem;
+  background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.25), transparent 55%),
+              radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.26), transparent 55%),
+              rgba(15, 23, 42, 0.92);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.75);
+  color: #e5e7eb;
 }
 
 .leaderboard-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+@media (max-width: 768px) {
+  .leaderboard-page {
+    margin: 5rem 1rem 2.5rem;
+    padding: 1.35rem 1.4rem 1.8rem;
+  }
+
+  .leaderboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 /* Reuse existing page-title and section-subtitle styles from Profile page
@@ -71,46 +92,78 @@
 
 /* View toggle chips */
 .view-toggle {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  display: inline-flex;
+  padding: 0.18rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  gap: 0.15rem;
 }
 
 .toggle-chip {
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  padding: 0.25rem 0.75rem;
-  font-size: 0.8rem;
+  border: none;
   background: transparent;
+  color: #e5e7eb;
+  font-size: 0.82rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
   cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, transform 0.1s ease,
+    box-shadow 0.16s ease;
+}
+
+.toggle-chip:hover {
+  background: rgba(15, 23, 42, 0.9);
 }
 
 .toggle-chip--active {
-  border-color: transparent;
   background: linear-gradient(135deg, #22c55e, #16a34a);
-  color: #fff;
+  color: #022c22;
+  box-shadow: 0 10px 25px rgba(22, 163, 74, 0.6);
+  transform: translateY(-1px);
 }
 
 /* Two-column layout */
 .leaderboard-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1.05fr);
   gap: 1.5rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 992px) {
+  .leaderboard-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* Cards (align with Profile page look & feel) */
 .leaderboard-card {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 0.8rem;
-  padding: 1.4rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  background: rgba(15, 23, 42, 0.97);
+  border-radius: 1rem;
+  padding: 1.4rem 1.6rem 1.7rem;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.7);
+}
+
+.leaderboard-main-card {
+  min-width: 0;
+}
+
+.leaderboard-sidebar-card {
+  min-width: 0;
 }
 
 .card-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.card-header-row h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .small-label {
@@ -122,20 +175,32 @@
 .podium-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+
+@media (max-width: 768px) {
+  .podium-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .podium-card {
-  border-radius: 0.75rem;
-  padding: 0.75rem;
   text-align: center;
-  position: relative;
-  border: 1px solid rgba(148, 163, 184, 0.4);
+  padding: 1rem 0.9rem 1.1rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: radial-gradient(circle at top, rgba(34, 197, 94, 0.18), transparent 60%),
+              rgba(15, 23, 42, 0.99);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .podium-card--gold {
-  border-color: #fbbf24;
+  border-color: #facc15;
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
 }
 
 .podium-card--silver {
@@ -143,36 +208,38 @@
 }
 
 .podium-card--bronze {
-  border-color: #d97757;
+  border-color: #f97316;
 }
 
 .podium-rank {
   font-size: 0.9rem;
-  opacity: 0.8;
-  margin-bottom: 0.25rem;
+  opacity: 0.85;
 }
 
 .podium-name {
-  font-size: 0.95rem;
+  font-size: 0.96rem;
   font-weight: 600;
-  margin-top: 0.25rem;
 }
 
 .podium-stat {
-  font-size: 0.8rem;
-  opacity: 0.8;
-  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  opacity: 0.85;
 }
 
 .you-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  background: rgba(34, 197, 94, 0.16);
+  justify-content: center;
+  padding: 0.1rem 0.55rem;
   border-radius: 999px;
-  padding: 0.1rem 0.5rem;
-  font-size: 0.7rem;
-  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  background: rgba(22, 163, 74, 0.2);
+  color: #bbf7d0;
+  border: 1px solid rgba(22, 163, 74, 0.7);
+}
+
+.you-pill--inline {
+  margin-left: 0.35rem;
 }
 
 /* Avatar variations (relying on Profile page avatar style if present) */
@@ -189,34 +256,35 @@
 }
 
 .avatar-circle--small {
-  width: 44px;
-  height: 44px;
-  font-size: 0.85rem;
-  margin: 0 auto;
+  width: 3rem;
+  height: 3rem;
+  font-size: 1rem;
 }
 
 .avatar-circle--tiny {
-  width: 30px;
-  height: 30px;
-  font-size: 0.75rem;
-  margin-right: 0.5rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  font-size: 0.8rem;
 }
 
 /* Table */
 .leaderboard-table-wrapper {
-  border-radius: 0.75rem;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  overflow: auto;
+  margin-top: 1.25rem;
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.99);
 }
 
 .leaderboard-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  min-width: 100%;
 }
 
 .leaderboard-table thead {
-  background: rgba(15, 23, 42, 0.9);
+  background: rgba(15, 23, 42, 0.98);
 }
 
 .leaderboard-table th,
@@ -228,21 +296,29 @@
 
 .leaderboard-table th {
   font-weight: 500;
-  opacity: 0.9;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.6);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(209, 213, 219, 0.95);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.7);
 }
 
 .leaderboard-table tbody tr:nth-child(even) {
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(15, 23, 42, 0.94);
+}
+
+.leaderboard-table tbody tr:nth-child(odd) {
+  background: rgba(15, 23, 42, 0.98);
 }
 
 .row-current-user {
-  background: rgba(34, 197, 94, 0.08);
+  background: rgba(22, 163, 74, 0.16) !important;
 }
 
 .user-cell {
   display: flex;
   align-items: center;
+  gap: 0.6rem;
 }
 
 .user-name-row {
@@ -252,62 +328,84 @@
 }
 
 .user-name {
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
 .user-email {
-  font-size: 0.75rem;
-  opacity: 0.75;
-}
-
-.you-pill--inline {
-  margin-top: 0;
+  font-size: 0.78rem;
+  opacity: 0.8;
 }
 
 /* Sidebar summary */
-.leaderboard-sidebar-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-}
-
 .summary-block {
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .summary-label {
   font-size: 0.8rem;
   opacity: 0.8;
   margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .summary-value {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: 600;
 }
 
 .summary-subvalue {
   font-size: 0.8rem;
   opacity: 0.8;
-  margin-left: 0.3rem;
+  margin-left: 0.25rem;
 }
 
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.7rem;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .summary-card {
-  border-radius: 0.7rem;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  padding: 0.6rem 0.7rem;
+  border-radius: 0.8rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.98);
+}
+
+.summary-card .summary-label {
+  margin-bottom: 0.15rem;
+}
+
+.summary-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.4rem;
 }
 
 .summary-tip {
   font-size: 0.8rem;
   opacity: 0.85;
-  margin-top: 0.25rem;
+  margin-top: 0.85rem;
+  line-height: 1.45;
+}
+
+.summary-level-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.76rem;
+  background: rgba(22, 163, 74, 0.16);
+  color: #bbf7d0;
+}
+
+.leaderboard-sidebar-card .actions-row {
+  margin-top: 1.3rem;
 }
 
 /* Button styles (reuse from Profile page if you already added them) */
@@ -351,6 +449,17 @@
 
   .podium-row {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 992px) {
+  .profile-page {
+    margin: 5rem 1rem 2.5rem;
+    padding: 1.35rem 1.4rem 1.8rem;
+  }
+
+  .profile-layout {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -398,81 +507,141 @@
 
 /* Profile page layout */
 .profile-page {
-  text-align: left;
-  /* override App.css centering */
+  /* override the global centering & give space for fixed navbar */
+    text-align: left;
+    max-width: 1100px;
+    margin: 5.5rem auto 3rem;
+    padding: 1.75rem 2rem 2.25rem;
+    border-radius: 1.25rem;
+    background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.25), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.26), transparent 55%),
+                rgba(15, 23, 42, 0.92);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.75);
+    color: #e5e7eb;
 }
 
 .page-title {
-  font-size: 1.6rem;
-  margin-bottom: 0.5rem;
+    font-size: 1.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.35rem;
+}
+
+.profile-page input,
+.profile-page textarea,
+.profile-page select {
+  width: 100%;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.95);
+  color: #e5e7eb;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.94rem;
+  line-height: 1.4;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.profile-page input::placeholder,
+.profile-page textarea::placeholder {
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.profile-page textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.profile-page input:focus,
+.profile-page textarea:focus,
+.profile-page select:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.7);
+  background: rgba(15, 23, 42, 0.98);
 }
 
 .section-subtitle {
-  font-size: 0.85rem;
-  opacity: 0.8;
-  margin-bottom: 1rem;
+    font-size: 0.88rem;
+    opacity: 0.8;
+    margin-bottom: 1.4rem;
 }
 
 .status-banner {
-  margin: 0.5rem 0 1rem;
-  padding: 0.6rem 0.8rem;
-  border-radius: 0.5rem;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.5);
-  font-size: 0.85rem;
+  margin-top: 1rem;
+  font-size: 0.88rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: 0.7rem;
+  background: rgba(22, 163, 74, 0.18);
+  border: 1px solid rgba(22, 163, 74, 0.6);
+  color: #bbf7d0;
 }
 
 /* Two-column layout */
 .profile-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: 1.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.1fr);
+    gap: 1.5rem;
+    align-items: flex-start;
 }
 
 /* Cards */
 .profile-card,
 .settings-card {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 0.8rem;
-  padding: 1.5rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    background: rgba(15, 23, 42, 0.96);
+    border-radius: 1rem;
+    padding: 1.4rem 1.6rem 1.7rem;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.7);
+}
+
+.profile-card h2,
+.settings-card h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.profile-card .section-subtitle,
+.settings-card .section-subtitle {
+  margin-bottom: 1.1rem;
 }
 
 /* Avatar */
 .avatar-circle {
-  width: 64px;
-  height: 64px;
+  width: 3.25rem;
+  height: 3.25rem;
   border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, #bbf7d0, #16a34a);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  color: white;
   font-weight: 700;
-  margin-bottom: 1.25rem;
   font-size: 1.1rem;
+  color: #022c22;
+  margin-bottom: 1rem;
 }
 
 /* Form controls */
 .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
   margin-bottom: 0.9rem;
 }
 
 .form-row {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
-.form-row .form-group {
+.form-row > .form-group {
   flex: 1;
 }
 
-label {
-  font-size: 0.85rem;
-  opacity: 0.85;
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+  color: rgba(209, 213, 219, 0.9);
 }
 
 input,
@@ -494,59 +663,112 @@ select:focus {
   border-color: transparent;
 }
 
-/* Settings group */
-.settings-group {
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  border-radius: 0.7rem;
-  padding: 0.75rem 0.9rem;
-  margin-bottom: 1rem;
+/* Notifications section (Profile page) */
+.profile-page .settings-group {
+  border-radius: 0.8rem;
+  padding: 0.9rem 1rem 0.8rem;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 65%),
+              rgba(15, 23, 42, 0.98);
+  margin-bottom: 1.1rem;
 }
 
-.settings-group legend {
-  padding: 0 0.25rem;
-  font-size: 0.85rem;
+.profile-page .settings-group legend {
+  padding: 0 0.35rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  color: #e5e7eb;
   opacity: 0.9;
 }
 
-.checkbox-row {
+/* Each notification row: checkbox + label aligned */
+.profile-page .checkbox-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.4rem;
+  gap: 0.6rem;
+  padding: 0.35rem 0;
+  cursor: pointer;
+}
+
+.profile-page .checkbox-row input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.profile-page .checkbox-row span {
   font-size: 0.9rem;
+  color: #e5e7eb;
+  line-height: 1.3;
 }
 
 /* Actions */
 .actions-row {
-  margin-top: 1.25rem;
+  margin-top: 1.3rem;
   display: flex;
-  gap: 0.75rem;
+  gap: 0.8rem;
+  flex-wrap: wrap;
 }
 
 .primary-button,
 .secondary-button {
   border-radius: 999px;
-  padding: 0.45rem 1.1rem;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.92rem;
+  font-weight: 500;
   border: 1px solid transparent;
-  font: inherit;
   cursor: pointer;
-  font-size: 0.9rem;
+  transition: background 0.16s ease, color 0.16s ease, transform 0.08s ease,
+    box-shadow 0.16s ease, border-color 0.16s ease;
 }
 
 .primary-button {
   background: linear-gradient(135deg, #22c55e, #16a34a);
-  color: white;
+  color: #022c22;
+  box-shadow: 0 10px 25px rgba(22, 163, 74, 0.55);
+}
+
+.primary-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px rgba(22, 163, 74, 0.7);
 }
 
 .secondary-button {
   background: transparent;
+  color: #e5e7eb;
   border-color: rgba(148, 163, 184, 0.8);
+}
+
+.secondary-button:hover {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(209, 213, 219, 0.9);
 }
 
 /* Responsive tweaks */
 @media (max-width: 900px) {
   .profile-layout {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 576px) {
+  .actions-row {
+    flex-direction: column;
+  }
+
+  .primary-button,
+  .secondary-button {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
   }
 }
 
@@ -623,4 +845,195 @@ select:focus {
 
 .react-calendar__month-view__days {
   gap: 3px;
+}
+
+.achievements-page {
+  text-align: left;
+  max-width: 1100px;
+  margin: 5.5rem auto 3rem;
+  padding: 1.75rem 2rem 2.3rem;
+  border-radius: 1.25rem;
+  background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.25), transparent 55%),
+              radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.26), transparent 55%),
+              rgba(15, 23, 42, 0.92);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.75);
+  color: #e5e7eb;
+}
+
+@media (max-width: 992px) {
+  .achievements-page {
+    margin: 5rem 1rem 2.5rem;
+    padding: 1.35rem 1.4rem 1.8rem;
+  }
+}
+
+/* Header */
+
+.achievements-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+  margin-bottom: 1.6rem;
+}
+
+.achievements-header .page-title {
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .achievements-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.achievements-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Cards & progress */
+
+.achievements-page .card {
+  background: rgba(15, 23, 42, 0.97);
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.7);
+  color: #e5e7eb;
+}
+
+.achievements-page .card-title {
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.achievements-page .card-text {
+  font-size: 0.86rem;
+  color: #cbd5f5;
+  opacity: 0.9;
+}
+
+.achievements-page .text-muted,
+.achievements-page .card-subtitle,
+.achievements-page .card-text.text-muted {
+  color: #cbd5f5 !important;
+  opacity: 0.88;
+}
+
+.achievements-page .progress {
+  background: rgba(15, 23, 42, 0.9);
+  height: 0.55rem;
+  border-radius: 999px;
+}
+
+.achievements-page .progress-bar {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.achievements-page .badge.bg-success {
+  background-color: #22c55e !important;
+  color: #022c22;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.7rem;
+}
+
+/* Buttons within Achievements */
+
+.achievements-page .btn {
+  border-radius: 999px;
+  font-size: 0.86rem;
+  padding: 0.35rem 0.9rem;
+  font-weight: 500;
+  border-width: 1px;
+}
+
+/* Top-right header buttons */
+.achievements-page .btn-outline-primary {
+  color: #e5e7eb;
+  border-color: rgba(148, 163, 184, 0.9);
+  background: transparent;
+}
+
+.achievements-page .btn-outline-primary:hover {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: #22c55e;
+  color: #bbf7d0;
+}
+
+.achievements-page .btn-outline-danger {
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.9);
+  background: transparent;
+}
+
+.achievements-page .btn-outline-danger:hover {
+  background: rgba(248, 113, 113, 0.12);
+}
+
+/* Buttons inside each card */
+.achievements-page .btn-outline-secondary {
+  color: #e5e7eb;
+  border-color: rgba(148, 163, 184, 0.8);
+  background: transparent;
+}
+
+.achievements-page .btn-outline-secondary:hover {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(209, 213, 219, 0.95);
+}
+
+.achievements-page .btn-success {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border-color: transparent;
+  color: #022c22;
+}
+
+.achievements-page .btn-success:disabled {
+  opacity: 0.9;
+}
+
+.graph-card {
+  border-radius: 0.9rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.98);
+}
+
+.custom-line-chart canvas {
+  width: 100% !important;
+}
+
+/* React Calendar dark theme overrides */
+.leaderboard-sidebar-card .react-calendar {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.98);
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 0.4rem;
+  font-size: 0.78rem;
+  color: #e5e7eb;
+}
+
+.react-calendar__navigation button,
+.react-calendar__month-view__weekdays,
+.react-calendar__month-view__days__day {
+  color: #e5e7eb;
+}
+
+.react-calendar__tile {
+  border-radius: 0.45rem;
+}
+
+/* Mark days with completed activity */
+.calendar-tile-done {
+  background: rgba(34, 197, 94, 0.25) !important;
+  color: #bbf7d0 !important;
+  border-radius: 999px !important;
+}
+
+.calendar-tile-done:hover {
+  background: rgba(34, 197, 94, 0.35) !important;
 }

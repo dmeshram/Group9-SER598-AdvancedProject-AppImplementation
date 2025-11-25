@@ -1,11 +1,11 @@
 import { useState } from 'react'
 
 const initialProfile = {
-  name: 'Jane Doe',
-  email: 'jane.doe@example.com',
-  role: 'Student',
-  organization: 'Arizona State University',
-  bio: 'Passionate about sustainability and green technologies.'
+  name: 'Oscar Piastri',
+  email: 'oscar.piastri@example.com',
+  role: 'Driver',
+  organization: 'McLaren Racing',
+  bio: 'Deserve to win, forced to be second.'
 }
 
 const initialSettings = {
