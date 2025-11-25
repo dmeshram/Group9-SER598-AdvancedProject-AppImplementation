@@ -18,16 +18,15 @@ export default function Navigation() {
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="ms-auto">
-                        {isAuthenticated ? (<></>) : (<Nav.Link as={Link} to='/landing'>Home</Nav.Link>)}
-                        {!isAuthenticated ? (<Nav.Link href="/login">Login</Nav.Link>) :
-                            (<>
-                                <Nav.Link disabled>Hi, {user?.name?.split(" ")[0] || "User"}</Nav.Link>
-                                <Nav.Link as={Link} to='/'>Home</Nav.Link>
-                                <Nav.Link as={Link} to='/profile'>Profile</Nav.Link>
-                                <Nav.Link as={Link} to='leaderboard'>Leaderboard</Nav.Link>
-                                <Nav.Link as={Link} to='achievements'>Achievements</Nav.Link>
-                                <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
-                            </>)}
+                        <Nav.Link as={Link} to='/'>Home</Nav.Link>
+                        {!isAuthenticated ? (<Nav.Link href="/login">Login</Nav.Link>) : 
+                        (<>
+                            <Nav.Link disabled>Hi, {user?.name?.split(" ")[0] || "User"}</Nav.Link>
+                            <Nav.Link as={Link} to='/profile'>Profile</Nav.Link>
+                            <Nav.Link as={Link} to='leaderboard'>Leaderboard</Nav.Link>
+                            <Nav.Link as={Link} to='history'>History</Nav.Link>
+                            <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
+                        </>)}
                     </Nav>
                 </Navbar.Collapse>
             </Container>
