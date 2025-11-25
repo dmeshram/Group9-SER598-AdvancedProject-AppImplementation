@@ -24,6 +24,7 @@ export default function Navigation() {
                             <Nav.Link disabled>Hi, {user?.name?.split(" ")[0] || "User"}</Nav.Link>
                             <Nav.Link as={Link} to='/profile'>Profile</Nav.Link>
                             <Nav.Link as={Link} to='leaderboard'>Leaderboard</Nav.Link>
+                            <Nav.Link as={Link} to='history'>History</Nav.Link>
                             <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
                         </>)}
                     </Nav>

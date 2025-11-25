@@ -7,6 +7,8 @@ import reactLogo from './assets/react.svg'
 import './App.css'
 import ProfileSettings from './pages/ProfileSettings.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
+import History from "./pages/history.jsx";
+
 
 function App() { 
 
@@ -19,6 +21,7 @@ function App() {
           <Route path='/login' element={<Login />} />
            <Route path="/profile" element={<ProfileSettings />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/history" element={<History />} />
         </Routes>
       </div>
      </>
