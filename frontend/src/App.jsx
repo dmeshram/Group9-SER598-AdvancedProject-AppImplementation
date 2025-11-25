@@ -9,6 +9,7 @@ import './App.css'
 import ProfileSettings from './pages/ProfileSettings.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
 import AchievementsPage from './pages/AchievementPage.jsx'
+import Landing from './pages/Landing.jsx'
 
 function App() {
 
@@ -18,6 +19,7 @@ function App() {
       <div className='content-container'>
         <Routes>
           <Route path='/' element={<Home />} />
+          <Route path='/landing' element={<Landing />} />
           <Route path='/login' element={<Login />} />
           <Route path='/register' element={<Register />} />
           <Route path="/profile" element={<ProfileSettings />} />
