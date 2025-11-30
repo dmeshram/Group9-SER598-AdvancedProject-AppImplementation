@@ -8,10 +8,12 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class ActivityService {
 
+    private static final int WEEKLY_GOAL_DAYS = 5;
     private final ActivityRepository activityRepo;
 
     public ActivityService(ActivityRepository activityRepo) {
@@ -100,12 +102,18 @@ public class ActivityService {
                 .mapToInt(ActivityEntity::getPoints)
                 .sum();
 
+        int weeklyActiveDays = all.stream()
+                .map(ActivityEntity::getDate)
+                .filter(d -> !d.isBefore(weekStart) && !d.isAfter(today))
+                .collect(Collectors.toSet())
+                .size();
+
         double co2SavedKg = all.stream()
                 .mapToDouble(a -> estimateCo2SavedKg(a.getActivityType(), a.getAmount(), a.getUnit()))
                 .sum();
 
         int currentStreak = computeCurrentStreak(all);
 
-        return new HomeSummary(totalPoints, weeklyPoints, co2SavedKg, currentStreak);
+        return new HomeSummary(totalPoints, weeklyPoints, co2SavedKg, currentStreak, WEEKLY_GOAL_DAYS, weeklyActiveDays);
     }
 }

@@ -13,6 +13,8 @@ export default function Home() {
     weeklyPoints: 0,
     co2SavedKg: 0,
     currentStreak: 0,
+    weeklyGoalDays: 5,
+    weeklyActiveDays: 0,
   });
 
   const [recentActivities, setRecentActivities] = useState([]);
@@ -94,6 +96,17 @@ export default function Home() {
         const saved = await res.json();
         setLogMessage("Activity logged successfully!");
         setRecentActivities((prev) => [saved, ...prev].slice(0, 5));
+        try {
+          const statsRes = await fetch(`${API_BASE}/api/home/summary`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (statsRes.ok) {
+            const newStats = await statsRes.json();
+            setStats(newStats);
+          }
+        } catch (err) {
+          console.error("Failed to refresh stats after logging activity:", err);
+        }
       }
     } catch (err) {
       console.error("Error logging activity:", err);
@@ -104,6 +117,16 @@ export default function Home() {
   };
 
   const displayName = user?.name || user?.email || "GreenLooper";
+
+  const weeklyGoalDays = stats.weeklyGoalDays || 5;
+  const weeklyActiveDays = Math.min(
+    stats.weeklyActiveDays ?? 0,
+    weeklyGoalDays
+  );
+  const progressPct = Math.min(
+    100,
+    Math.round((weeklyActiveDays / weeklyGoalDays) * 100)
+  );
 
   return (
     <div className="dashboard-page">
@@ -241,13 +264,19 @@ export default function Home() {
           <div className="panel small">
             <h3>Weekly goal</h3>
             <p className="panel-description">
-              Aim for at least <strong>5 green days</strong> this week.
+              Aim for at least{" "}
+              <strong>{weeklyGoalDays} green days</strong> this week.
             </p>
             <div className="progress-wrapper">
               <div className="progress-bar">
-                <div className="progress-fill" style={{ width: "60%" }} />
+                <div
+                  className="progress-fill"
+                  style={{ width: `${progressPct}%` }}
+                />
               </div>
-              <p className="progress-label">3 of 5 days completed</p>
+              <p className="progress-label">
+                {weeklyActiveDays} of {weeklyGoalDays} days completed
+              </p>
             </div>
           </div>
         </aside>
