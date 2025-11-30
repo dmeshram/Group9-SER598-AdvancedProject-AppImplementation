@@ -1,4 +1,4 @@
-// src/components/Achievements/AddGoalModal.jsx
+
 import React, { useState } from "react";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
@@ -20,7 +20,6 @@ export default function AddGoalModal({ show, onClose, onAdd }) {
             required: Math.max(1, Number(required) || 1),
             icon,
         });
-        // reset & close
         setTitle("");
         setDesc("");
         setRequired(1);
