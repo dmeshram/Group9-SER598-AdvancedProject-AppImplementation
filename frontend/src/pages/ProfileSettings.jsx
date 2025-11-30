@@ -1,71 +1,126 @@
-import { useState } from 'react'
+// src/pages/ProfileSettings.jsx
+import { useState, useEffect } from "react";
 
 const initialProfile = {
-  name: 'Oscar Piastri',
-  email: 'oscar.piastri@example.com',
-  role: 'Driver',
-  organization: 'McLaren Racing',
-  bio: 'Deserve to win, forced to be second.'
-}
+  name: "Oscar Piastri",
+  email: "oscar.piastri@example.com",
+  role: "Driver",
+  organization: "McLaren Racing",
+  bio: "Deserve to win, forced to be second.",
+};
 
 const initialSettings = {
-  theme: 'light',
+  theme: "light",
   emailNotifications: true,
   smsNotifications: false,
   newsletter: true,
-  language: 'en'
-}
+  language: "en",
+};
 
-function ProfileSettings() {
-  const [profile, setProfile] = useState(initialProfile)
-  const [settings, setSettings] = useState(initialSettings)
-  const [statusMessage, setStatusMessage] = useState('')
+export default function ProfileSettings() {
+  const [profile, setProfile] = useState(initialProfile);
+  const [settings, setSettings] = useState(initialSettings);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadProfile() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const baseUrl = import.meta.env.VITE_API_BASE_URL;
+        const res = await fetch(`${baseUrl}/api/profile`, {
+          method: "GET",
+          signal: controller.signal,
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        if (data.profile) setProfile(data.profile);
+        if (data.settings) setSettings(data.settings);
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        console.error("Failed to load profile", err);
+        setError("Could not load profile. Using default values.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProfile();
+    return () => controller.abort();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setStatusMessage("Saving…");
+
+      const baseUrl = import.meta.env.VITE_API_BASE_URL;
+      const res = await fetch(`${baseUrl}/api/profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          profile,
+          settings,
+        }),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const updated = await res.json();
+      if (updated.profile) setProfile(updated.profile);
+      if (updated.settings) setSettings(updated.settings);
+
+      setStatusMessage("Profile updated successfully.");
+      setTimeout(() => setStatusMessage(""), 3000);
+    } catch (err) {
+      console.error("Failed to save profile", err);
+      setStatusMessage("Failed to save profile.");
+    }
+  };
 
   const handleProfileChange = (e) => {
-    const { name, value } = e.target
-    setProfile((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setProfile((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSettingsChange = (e) => {
-    const { name, type, value, checked } = e.target
+    const { name, type, value, checked } = e.target;
     setSettings((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }))
-  }
-
-  const handleSave = (e) => {
-    e.preventDefault()
-
-    // TODO: Replace this with a real API call to your backend later
-    // fetch('/api/profile', { method: 'PUT', body: JSON.stringify({ profile, settings }) })
-
-    console.log('Profile data:', profile)
-    console.log('Settings data:', settings)
-
-    setStatusMessage('Changes saved successfully!')
-    setTimeout(() => setStatusMessage(''), 3000)
-  }
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
 
   return (
     <div className="profile-page">
-      <h1 className="page-title">Profile & Settings</h1>
+      <h1 className="page-title">Profile &amp; Settings</h1>
 
+      {loading && <div className="status-banner">Loading your profile…</div>}
+      {error && (
+        <div className="status-banner status-banner--error">{error}</div>
+      )}
       {statusMessage && <div className="status-banner">{statusMessage}</div>}
 
-      <form className="profile-layout" onSubmit={handleSave}>
+      <form className="profile-layout" onSubmit={handleSubmit}>
         {/* Left side – profile info */}
         <section className="profile-card">
           <h2>Profile</h2>
-          <p className="section-subtitle">
-            Update your personal information.
-          </p>
+          <p className="section-subtitle">Update your personal information.</p>
 
           <div className="avatar-circle">
             {profile.name
-              .split(' ')
+              .split(" ")
               .map((n) => n[0])
-              .join('')
+              .join("")
               .toUpperCase()}
           </div>
 
@@ -208,10 +263,10 @@ function ProfileSettings() {
               type="button"
               className="secondary-button"
               onClick={() => {
-                setProfile(initialProfile)
-                setSettings(initialSettings)
-                setStatusMessage('Reverted to last saved values.')
-                setTimeout(() => setStatusMessage(''), 3000)
+                setProfile(initialProfile);
+                setSettings(initialSettings);
+                setStatusMessage("Reverted to last saved values.");
+                setTimeout(() => setStatusMessage(""), 3000);
               }}
             >
               Reset
@@ -220,7 +275,5 @@ function ProfileSettings() {
         </section>
       </form>
     </div>
-  )
+  );
 }
-
-export default ProfileSettings
