@@ -1,17 +1,16 @@
+const listeners = new Set();
 
-const ACTIVITY_EVENT = "app:activityLogged";
-
-export function emitActivity(activity) {
-    if (!activity || !activity.type) return;
+export function emitActivity(payload) {
     try {
-        window.dispatchEvent(new CustomEvent(ACTIVITY_EVENT, { detail: activity }));
+        listeners.forEach(fn => {
+            try { fn(payload); } catch (e) { console.error("activityBus listener error", e); }
+        });
     } catch (e) {
-        console.warn("emitActivity failed", e);
+        console.error("emitActivity error", e);
     }
 }
 
-export function onActivity(handler) {
-    const wrapper = (e) => handler(e.detail);
-    window.addEventListener(ACTIVITY_EVENT, wrapper);
-    return () => window.removeEventListener(ACTIVITY_EVENT, wrapper);
+export function onActivity(cb) {
+    listeners.add(cb);
+    return () => listeners.delete(cb);
 }

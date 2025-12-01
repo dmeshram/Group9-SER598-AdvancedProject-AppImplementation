@@ -77,6 +77,28 @@ export default function Home() {
     }
 
     setLogging(true);
+
+    const mapActivity = (label, amount, date) => {
+      const l = (label || "").toLowerCase();
+      const isoDate = (date && date.slice(0, 10)) || new Date().toISOString().slice(0, 10);
+
+      if (l.includes("walk")) return { type: "walking", value: Number(amount) || 1, date: isoDate };
+      if (l.includes("cycle") || l.includes("bike")) return { type: "cycling", value: Number(amount) || 1, date: isoDate };
+      if (l.includes("public")) return { type: "public_transport", value: Number(amount) || 1, date: isoDate };
+      if (l.includes("reusable") || l.includes("bottle") || l.includes("bag")) return { type: "reusable", value: Number(amount) || 1, date: isoDate };
+      if (l.includes("recycl")) return { type: "recycling", value: Number(amount) || 1, date: isoDate };
+
+      return { type: "other", value: Number(amount) || 1, date: isoDate };
+    };
+
+    const busPayload = mapActivity(activityType, amount, date);
+
+    try {
+      emitActivity(busPayload);
+    } catch (err) {
+      console.warn("emitActivity failed:", err);
+    }
+
     try {
       const res = await fetch(`${API_BASE}/api/activities`, {
         method: "POST",
@@ -116,24 +138,17 @@ export default function Home() {
     } finally {
       setLogging(false);
     }
-    // after you successfully post the activity and update stats
-    // You can place this right after setStats(newStats) where you refresh stats
 
     try {
-      // ... existing code that posts activity and fetches stats ...
       if (statsRes.ok) {
         const newStats = await statsRes.json();
         setStats(newStats);
 
-        // ===== ADD THIS BLOCK =====
-        // Emit a local activity event so AchievementsPage updates immediately
-        // Map backend activity fields to the local bus types used by AchievementsPage
+
         let eventType = null;
         let eventValue = Number(amount) || 1;
 
-        // map your activityType and unit to the bus types
         if (activityType === "WALKING" || activityType === "RUNNING") {
-          // assume amount is steps when unit is "steps" else treat as distance or minutes
           if (unit === "steps") {
             eventType = "steps";
           } else if (unit === "km") {
