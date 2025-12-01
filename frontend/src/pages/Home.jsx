@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { emitActivity } from "../utils/activityBus";
+
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -21,7 +23,7 @@ export default function Home() {
 
   const [activityType, setActivityType] = useState("WALKING");
   const [amount, setAmount] = useState("");
-  const [unit, setUnit] = useState("minutes"); 
+  const [unit, setUnit] = useState("minutes");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [logging, setLogging] = useState(false);
   const [logError, setLogError] = useState("");
@@ -86,7 +88,7 @@ export default function Home() {
           type: activityType,
           amount: Number(amount),
           unit,
-          date, 
+          date,
         }),
       });
 
@@ -114,6 +116,52 @@ export default function Home() {
     } finally {
       setLogging(false);
     }
+    // after you successfully post the activity and update stats
+    // You can place this right after setStats(newStats) where you refresh stats
+
+    try {
+      // ... existing code that posts activity and fetches stats ...
+      if (statsRes.ok) {
+        const newStats = await statsRes.json();
+        setStats(newStats);
+
+        // ===== ADD THIS BLOCK =====
+        // Emit a local activity event so AchievementsPage updates immediately
+        // Map backend activity fields to the local bus types used by AchievementsPage
+        let eventType = null;
+        let eventValue = Number(amount) || 1;
+
+        // map your activityType and unit to the bus types
+        if (activityType === "WALKING" || activityType === "RUNNING") {
+          // assume amount is steps when unit is "steps" else treat as distance or minutes
+          if (unit === "steps") {
+            eventType = "steps";
+          } else if (unit === "km") {
+            eventType = "cycle_km"; // AchievementsPage maps cycle_km -> g7/g8
+            // if it's walking distance you might want to map differently
+          } else {
+            eventType = "points"; // fallback (or define your own mapping)
+          }
+        } else if (activityType === "WORKOUT") {
+          eventType = "workout";
+          eventValue = 1; // count workouts
+        } else if (activityType === "RECYCLING") {
+          eventType = "recycle";
+        } else if (activityType === "DRINK") {
+          eventType = "drink_l";
+        } else {
+          // fallback: send generic points
+          eventType = "points";
+        }
+
+        // finally emit
+        emitActivity({ type: eventType, value: eventValue });
+        // ===== END ADD BLOCK =====
+      }
+    } catch (err) {
+      // existing error handling...
+    }
+
   };
 
   const displayName = user?.name || user?.email || "GreenLooper";
@@ -169,7 +217,7 @@ export default function Home() {
             </div>
             {recentActivities.length === 0 ? (
               <p className="panel-empty">
-                You haven&apos;t logged any activities yet today. Start with a short walk 
+                You haven&apos;t logged any activities yet today. Start with a short walk
               </p>
             ) : (
               <ul className="activity-list">
