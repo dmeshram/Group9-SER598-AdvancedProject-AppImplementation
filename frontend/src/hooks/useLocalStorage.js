@@ -1,4 +1,4 @@
-// src/hooks/useLocalStorage.js
+
 import { useState, useEffect } from "react";
 
 export default function useLocalStorage(key, initialValue) {
@@ -15,7 +15,6 @@ export default function useLocalStorage(key, initialValue) {
         try {
             window.localStorage.setItem(key, JSON.stringify(state));
         } catch (e) {
-            // ignore write errors
         }
     }, [key, state]);
 
