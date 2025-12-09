@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { emitActivity } from "../utils/activityBus";
-
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -75,30 +73,7 @@ export default function Home() {
       setLogError("Please enter a positive value for amount.");
       return;
     }
-
     setLogging(true);
-
-    const mapActivity = (label, amount, date) => {
-      const l = (label || "").toLowerCase();
-      const isoDate = (date && date.slice(0, 10)) || new Date().toISOString().slice(0, 10);
-
-      if (l.includes("walk")) return { type: "walking", value: Number(amount) || 1, date: isoDate };
-      if (l.includes("cycle") || l.includes("bike")) return { type: "cycling", value: Number(amount) || 1, date: isoDate };
-      if (l.includes("public")) return { type: "public_transport", value: Number(amount) || 1, date: isoDate };
-      if (l.includes("reusable") || l.includes("bottle") || l.includes("bag")) return { type: "reusable", value: Number(amount) || 1, date: isoDate };
-      if (l.includes("recycl")) return { type: "recycling", value: Number(amount) || 1, date: isoDate };
-
-      return { type: "other", value: Number(amount) || 1, date: isoDate };
-    };
-
-    const busPayload = mapActivity(activityType, amount, date);
-
-    try {
-      emitActivity(busPayload);
-    } catch (err) {
-      console.warn("emitActivity failed:", err);
-    }
-
     try {
       const res = await fetch(`${API_BASE}/api/activities`, {
         method: "POST",
@@ -138,45 +113,6 @@ export default function Home() {
     } finally {
       setLogging(false);
     }
-
-    try {
-      if (statsRes.ok) {
-        const newStats = await statsRes.json();
-        setStats(newStats);
-
-
-        let eventType = null;
-        let eventValue = Number(amount) || 1;
-
-        if (activityType === "WALKING" || activityType === "RUNNING") {
-          if (unit === "steps") {
-            eventType = "steps";
-          } else if (unit === "km") {
-            eventType = "cycle_km"; // AchievementsPage maps cycle_km -> g7/g8
-            // if it's walking distance you might want to map differently
-          } else {
-            eventType = "points"; // fallback (or define your own mapping)
-          }
-        } else if (activityType === "WORKOUT") {
-          eventType = "workout";
-          eventValue = 1; // count workouts
-        } else if (activityType === "RECYCLING") {
-          eventType = "recycle";
-        } else if (activityType === "DRINK") {
-          eventType = "drink_l";
-        } else {
-          // fallback: send generic points
-          eventType = "points";
-        }
-
-        // finally emit
-        emitActivity({ type: eventType, value: eventValue });
-        // ===== END ADD BLOCK =====
-      }
-    } catch (err) {
-      // existing error handling...
-    }
-
   };
 
   const displayName = user?.name || user?.email || "GreenLooper";

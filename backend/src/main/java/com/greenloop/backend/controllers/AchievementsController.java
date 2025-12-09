@@ -22,20 +22,31 @@ public class AchievementsController {
     private final AuthTokenResolver tokenResolver;
 
     public AchievementsController(AchievementService achievementService,
-            UserRepository userRepo,
-            AuthTokenResolver tokenResolver) {
+                                  UserRepository userRepo,
+                                  AuthTokenResolver tokenResolver) {
         this.achievementService = achievementService;
         this.userRepo = userRepo;
         this.tokenResolver = tokenResolver;
     }
 
     private UserEntity getCurrentUser(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer "))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing bearer");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing bearer token");
+        }
 
-        var auth = tokenResolver.resolve(authHeader.substring("Bearer ".length()));
-        var user = userRepo.findById(Long.valueOf(auth.userId()))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+        String token = authHeader.substring("Bearer ".length()).trim();
+        var auth = tokenResolver.resolve(token);
+
+        UserEntity user;
+        if (auth.type() == AuthTokenResolver.AuthType.GOOGLE) {
+            // Google login: use googleId column
+            user = userRepo.findByGoogleId(auth.userId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+        } else {
+            // Local login: use email column
+            user = userRepo.findByEmail(auth.email())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+        }
 
         return user;
     }
