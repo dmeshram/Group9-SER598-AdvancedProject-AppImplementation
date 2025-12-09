@@ -1422,3 +1422,23 @@ select:focus {
 .link-button:hover {
   color: #c7d2fe;
 }
+
+.forest-page {
+  width: 100%;
+  height: 100vh;
+  background: radial-gradient(circle at top, #0f172a 0%, #020617 60%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.forest-page canvas {
+  image-rendering: smooth;
+}
+
+Canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
