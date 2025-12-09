@@ -53,33 +53,40 @@ public class ProfileService {
     @Transactional
     public ProfileResponse updateProfile(Long userId, ProfileRequest request) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "User not found: " + userId));
+        var profileDto = request.profile();
+        if (profileDto != null) {
+            user.setName(profileDto.name());
+            user.setEmail(profileDto.email());
+            user.setRole(profileDto.role());
+            user.setOrganization(profileDto.organization());
+            user.setBio(profileDto.bio());
+        }
 
-        ProfileDto p = request.profile();
-        user.setName(p.name());
-        user.setRole(p.role());
-        user.setOrganization(p.organization());
-        user.setBio(p.bio());
         userRepository.save(user);
 
-        UserSettingsEntity settings = settingsRepository.findById(userId)
+        var settingsDto = request.settings();
+        UserSettingsEntity settings = settingsRepository
+                .findByUserId(userId)
                 .orElseGet(() -> {
                     UserSettingsEntity s = new UserSettingsEntity();
                     s.setUser(user);
-                    s.setUserId(user.getId());
                     return s;
                 });
 
-        SettingsDto sDto = request.settings();
-        settings.setTheme(sDto.theme());
-        settings.setEmailNotifications(sDto.emailNotifications());
-        settings.setSmsNotifications(sDto.smsNotifications());
-        settings.setNewsletter(sDto.newsletter());
-        settings.setLanguage(sDto.language());
+        if (settingsDto != null) {
+            settings.setTheme(settingsDto.theme());
+            settings.setEmailNotifications(settingsDto.emailNotifications());
+            settings.setSmsNotifications(settingsDto.smsNotifications());
+            settings.setNewsletter(settingsDto.newsletter());
+            settings.setLanguage(settingsDto.language());
+        }
+
         settingsRepository.save(settings);
 
-        return new ProfileResponse(p, sDto);
-    }
+        return new ProfileResponse(profileDto, settingsDto);
+}
 
     private UserSettingsEntity defaultSettings(UserEntity user) {
         UserSettingsEntity s = new UserSettingsEntity();

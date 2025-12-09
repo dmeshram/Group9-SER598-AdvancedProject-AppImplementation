@@ -10,7 +10,6 @@ const EMPTY_PROFILE = {
 };
 
 const EMPTY_SETTINGS = {
-  // theme is still kept for backend compatibility but not editable in UI
   theme: "dark",
   emailNotifications: true,
   smsNotifications: false,
@@ -30,8 +29,8 @@ export default function ProfileSettings() {
   const [localProfile, setLocalProfile] = useState(EMPTY_PROFILE);
   const [localSettings, setLocalSettings] = useState(EMPTY_SETTINGS);
   const [statusMessage, setStatusMessage] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
-  // Sync context data into local form state
   useEffect(() => {
     if (profile) {
       setLocalProfile({
@@ -56,11 +55,13 @@ export default function ProfileSettings() {
   }, [profile, settings]);
 
   const handleProfileChange = (e) => {
+    if (!isEditing) return;
     const { name, value } = e.target;
     setLocalProfile((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSettingsChange = (e) => {
+    if (!isEditing) return;
     const { name, type, checked } = e.target;
     setLocalSettings((prev) => ({
       ...prev,
@@ -68,8 +69,45 @@ export default function ProfileSettings() {
     }));
   };
 
+  const handleEditClick = () => {
+    setIsEditing(true);
+    setStatusMessage("");
+  };
+
+  const handleCancel = () => {
+    if (profile) {
+      setLocalProfile({
+        name: profile.name ?? "",
+        email: profile.email ?? "",
+        role: profile.role ?? "",
+        organization: profile.organization ?? "",
+        bio: profile.bio ?? "",
+      });
+    } else {
+      setLocalProfile(EMPTY_PROFILE);
+    }
+
+    if (settings) {
+      setLocalSettings({
+        theme: settings.theme ?? "dark",
+        emailNotifications:
+          settings.emailNotifications ?? true,
+        smsNotifications: settings.smsNotifications ?? false,
+        newsletter: settings.newsletter ?? true,
+        language: settings.language ?? "en",
+      });
+    } else {
+      setLocalSettings(EMPTY_SETTINGS);
+    }
+
+    setIsEditing(false);
+    setStatusMessage("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isEditing) return;
+
     try {
       setStatusMessage("Saving…");
       await saveProfile({
@@ -77,6 +115,7 @@ export default function ProfileSettings() {
         settings: localSettings,
       });
       setStatusMessage("Profile updated successfully.");
+      setIsEditing(false);
       setTimeout(() => setStatusMessage(""), 3000);
     } catch (err) {
       console.error("Failed to save profile", err);
@@ -103,7 +142,9 @@ export default function ProfileSettings() {
       <form className="profile-layout" onSubmit={handleSubmit}>
         {/* Left side – profile info */}
         <section className="profile-card">
-          <h2>Profile</h2>
+          <div className="profile-card-header">
+            <h2>Profile</h2>
+          </div>
 
           <div className="form-group">
             <label htmlFor="name">Full name</label>
@@ -114,6 +155,7 @@ export default function ProfileSettings() {
               onChange={handleProfileChange}
               type="text"
               required
+              readOnly={!isEditing}
             />
           </div>
 
@@ -126,6 +168,7 @@ export default function ProfileSettings() {
               onChange={handleProfileChange}
               type="email"
               required
+              readOnly={!isEditing}
             />
           </div>
 
@@ -138,6 +181,7 @@ export default function ProfileSettings() {
                 value={localProfile.role}
                 onChange={handleProfileChange}
                 type="text"
+                readOnly={!isEditing}
               />
             </div>
 
@@ -149,6 +193,7 @@ export default function ProfileSettings() {
                 value={localProfile.organization}
                 onChange={handleProfileChange}
                 type="text"
+                readOnly={!isEditing}
               />
             </div>
           </div>
@@ -161,15 +206,27 @@ export default function ProfileSettings() {
               value={localProfile.bio}
               onChange={handleProfileChange}
               rows={4}
+              readOnly={!isEditing}
             />
           </div>
         </section>
 
         {/* Right side – settings */}
         <section className="settings-card">
-          <h2>Preferences</h2>
+          <div className="settings-card-header">
+            <h2>Preferences</h2>
+            {!isEditing && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleEditClick}
+              >
+                Edit profile
+              </button>
+            )}
+          </div>
 
-          {/* Theme + language removed from UI on purpose */}
+          {/* Theme & language are not editable in the UI */}
 
           <fieldset className="settings-group">
             <legend>Notifications</legend>
@@ -180,6 +237,7 @@ export default function ProfileSettings() {
                 name="emailNotifications"
                 checked={localSettings.emailNotifications}
                 onChange={handleSettingsChange}
+                disabled={!isEditing}
               />
               <span>Email notifications</span>
             </label>
@@ -190,6 +248,7 @@ export default function ProfileSettings() {
                 name="smsNotifications"
                 checked={localSettings.smsNotifications}
                 onChange={handleSettingsChange}
+                disabled={!isEditing}
               />
               <span>SMS notifications</span>
             </label>
@@ -200,19 +259,31 @@ export default function ProfileSettings() {
                 name="newsletter"
                 checked={localSettings.newsletter}
                 onChange={handleSettingsChange}
+                disabled={!isEditing}
               />
               <span>Product updates &amp; newsletter</span>
             </label>
           </fieldset>
 
           <div className="form-actions">
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={profileLoading}
-            >
-              Save changes
-            </button>
+            {isEditing && (
+              <>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={profileLoading}
+                >
+                  Save changes
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </button>
+              </>
+            )}
           </div>
         </section>
       </form>

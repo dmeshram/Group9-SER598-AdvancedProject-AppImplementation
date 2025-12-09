@@ -20,14 +20,14 @@ public class UserStatsEntity {
     private LocalDate periodStart;
 
     @Enumerated(EnumType.STRING)
-    private PeriodType periodType; // WEEK, MONTH, ALL_TIME
+    private PeriodType periodType;
 
     private double totalCarbonSavedKg;
     private int weeklyPoints;
     private int streakDays;
     private int completedGoals;
-    private String level;      // e.g. "Eco Warrior"
-    private double percentile; // 0–100
+    private String level;
+    private double percentile;
 
     public enum PeriodType {
         WEEK, MONTH, ALL_TIME

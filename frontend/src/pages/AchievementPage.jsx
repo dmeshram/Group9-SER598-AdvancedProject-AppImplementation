@@ -1,4 +1,3 @@
-// src/pages/AchievementsPage.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
@@ -14,7 +13,6 @@ const DEFAULT_GOALS = [
 ];
 
 export default function AchievementsPage() {
-    // persisted goals & user progress
     const [goals, setGoals] = useState([]);
     // user progress array of { goalId, progress, unlockedAt? }
     const [userProgress, setUserProgress] = useState([]);

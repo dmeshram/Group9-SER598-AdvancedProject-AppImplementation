@@ -28,13 +28,11 @@ export function DataProvider({ children }) {
   const { token, user } = useAuth();
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
-  // ---- PROFILE STATE ----
   const [profile, setProfile] = useState(null);
   const [settings, setSettings] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState(null);
 
-  // ---- LEADERBOARD STATE ----
   const [leaderboardData, setLeaderboardData] = useState({
     week: [],
     month: [],
@@ -47,14 +45,12 @@ export function DataProvider({ children }) {
   const currentUserEmail =
     user && user.email ? user.email.toLowerCase() : null;
 
-  // 🔒 Force the whole app to stay on the dark theme
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove("theme-light");
     root.classList.add("theme-dark");
   }, []);
 
-  // Map raw API response -> UI model, and mark isCurrentUser
   const mapLeaderboardUsers = useCallback(
     (data) =>
       (data.users ?? []).map((u) => {
@@ -87,7 +83,6 @@ export function DataProvider({ children }) {
     [currentUserEmail]
   );
 
-  // ---------- PROFILE LOAD / SAVE ----------
   const loadProfile = useCallback(async () => {
     if (!token) return;
 
@@ -137,10 +132,8 @@ export function DataProvider({ children }) {
     [baseUrl, token]
   );
 
-  // ---------- LEADERBOARD PRELOAD (ALL 3 VIEWS ONCE) ----------
   useEffect(() => {
     if (!token) {
-      // Clear everything on logout
       setProfile(null);
       setSettings(null);
       setLeaderboardData({ week: [], month: [], all: [] });
@@ -148,7 +141,6 @@ export function DataProvider({ children }) {
       return;
     }
 
-    // Load profile for current user
     loadProfile();
 
     const fetchView = async (viewKey) => {
@@ -192,11 +184,9 @@ export function DataProvider({ children }) {
     fetchAllViews();
   }, [token, baseUrl, loadProfile, mapLeaderboardUsers]);
 
-  // Derived users for the currently selected view
   const currentViewKey = getViewKey(leaderboardView);
   const leaderboardUsers = leaderboardData[currentViewKey] ?? [];
 
-  // Optional manual refresh: refetch all 3 views again
   const refreshLeaderboard = useCallback(async () => {
     if (!token) return;
 
@@ -238,7 +228,6 @@ export function DataProvider({ children }) {
   }, [baseUrl, token, mapLeaderboardUsers]);
 
   const value = {
-    // Profile data + actions
     profile,
     settings,
     profileLoading,
@@ -246,7 +235,6 @@ export function DataProvider({ children }) {
     refreshProfile: loadProfile,
     saveProfile,
 
-    // Leaderboard data + actions
     leaderboardUsers,
     leaderboardLoading,
     leaderboardError,

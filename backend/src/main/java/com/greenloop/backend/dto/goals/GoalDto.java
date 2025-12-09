@@ -4,7 +4,7 @@ public record GoalDto(
         Long id,
         String title,
         String description,
-        int required,          // number of actions needed
+        int required,
         String icon,
         boolean systemDefined
 ) {}

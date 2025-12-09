@@ -608,6 +608,17 @@
   margin-bottom: 1.1rem;
 }
 
+.settings-card-header button {
+ margin: auto;
+ margin-top: 5px;
+ margin-bottom: 10px;
+}
+
+.form-actions button {
+ margin-top: 5px;
+ margin-right: 5px;
+}
+
 /* Avatar */
 .avatar-circle {
   width: 3.25rem;

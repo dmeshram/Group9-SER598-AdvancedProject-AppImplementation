@@ -1,4 +1,3 @@
-// src/components/Achievements/AchievementCard.jsx
 import React from "react";
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
@@ -9,7 +8,6 @@ const Icon = ({ type, unlocked }) => {
     const style = { fontSize: 28, width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center" };
     if (type === "medal") return <div style={style}>{unlocked ? "🏅" : "🔘"}</div>;
     if (type === "star") return <div style={style}>{unlocked ? "⭐" : "☆"}</div>;
-    // default trophy
     return <div style={style}>{unlocked ? "🏆" : "🔒"}</div>;
 };
 
