@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
 import { Line } from "react-chartjs-2";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import { useAuth } from "../auth/AuthContext.jsx";
 
 import {
   Chart as ChartJS,
@@ -23,68 +23,74 @@ ChartJS.register(
   Legend
 );
 
-// === MOCK DATA ===
-const MOCK_HISTORY = {
-  achievements: [
-    { id: 1, title: "Walked 10,000 steps", date: "2025-01-12" },
-    { id: 2, title: "Reached 7-day streak", date: "2025-01-05" },
-    { id: 3, title: "Saved 5kg CO₂ in a week", date: "2024-12-19" },
-  ],
-  completedActivities: [
-    { date: "2025-01-12", activity: "Used reusable bottle", co2Saved: 0.2 },
-    { date: "2025-01-12", activity: "Walked instead of driving", co2Saved: 1.1 },
-    { date: "2025-01-11", activity: "Public transport", co2Saved: 0.8 },
-  ],
-  co2Trend: [
-    { day: "Mon", kg: 1.2 },
-    { day: "Tue", kg: 2.4 },
-    { day: "Wed", kg: 1.8 },
-    { day: "Thu", kg: 2.1 },
-    { day: "Fri", kg: 1.1 },
-    { day: "Sat", kg: 1.4 },
-    { day: "Sun", kg: 1.9 },
-  ],
-  streakDays: 21,
-  calendar: [
-    { date: "2025-01-01", completed: true },
-    { date: "2025-01-02", completed: true },
-    { date: "2025-01-03", completed: false },
-    { date: "2025-01-04", completed: true },
-    { date: "2025-01-05", completed: true },
-    { date: "2025-01-06", completed: false },
-    { date: "2025-01-07", completed: true },
-  ],
-};
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-// === HELPER ===
 function markedDatesArray(calendarData) {
-  return calendarData
+  return (calendarData || [])
     .filter((d) => d.completed)
     .map((d) => new Date(d.date).toDateString());
 }
 
-// === MAIN COMPONENT ===
 function History() {
-  const { userId } = useParams();
-  const [history, setHistory] = useState(null);
+  const { token, isAuthenticated } = useAuth();
+
+  const [history, setHistory] = useState({
+    achievements: [],
+    completedActivities: [],
+    co2Trend: [],
+    streakDays: 0,
+    calendar: [],
+  });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setHistory(MOCK_HISTORY);
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [userId]);
+    if (!isAuthenticated || !token) return;
+
+    const fetchHistory = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetch(`${API_BASE}/api/history`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to load history (${res.status})`);
+        }
+
+        const data = await res.json();
+        setHistory({
+          achievements: data.achievements || [],
+          completedActivities: data.completedActivities || [],
+          co2Trend: data.co2Trend || [],
+          streakDays: data.streakDays ?? 0,
+          calendar: data.calendar || [],
+        });
+      } catch (e) {
+        console.error("Error fetching history:", e);
+        setError("Could not load your history. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [isAuthenticated, token]);
 
   const totalCo2Saved = useMemo(() => {
-    if (!history) return 0;
-    return history.co2Trend.reduce((sum, d) => sum + d.kg, 0);
+    if (!history || !history.co2Trend) return 0;
+    return history.co2Trend.reduce((sum, d) => sum + (d.kg || 0), 0);
   }, [history]);
 
-  // === LINE CHART DATA ===
   const lineChartData = useMemo(() => {
-    if (!history) return null;
+    if (!history || !history.co2Trend || history.co2Trend.length === 0)
+      return {
+        labels: [],
+        datasets: [],
+      };
 
     return {
       labels: history.co2Trend.map((d) => d.day),
@@ -105,7 +111,6 @@ function History() {
     };
   }, [history]);
 
-  // === LINE CHART OPTIONS ===
   const lineChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -142,10 +147,12 @@ function History() {
         </p>
       </header>
 
-      <section className="leaderboard-layout">
-        {/* LEFT MAIN CONTENT */}
-        <div className="leaderboard-card leaderboard-main-card">
+      {error && (
+        <div style={{ color: "#fecaca", marginBottom: "1rem" }}>{error}</div>
+      )}
 
+      <section className="leaderboard-layout">
+        <div className="leaderboard-card leaderboard-main-card">
           <h2>Your Streak</h2>
           <div className="summary-card" style={{ marginBottom: "2rem" }}>
             <div className="summary-label">Current streak</div>
@@ -161,12 +168,18 @@ function History() {
               </tr>
             </thead>
             <tbody>
-              {history.achievements.map((a) => (
-                <tr key={a.id}>
-                  <td>{a.title}</td>
-                  <td>{a.date}</td>
+              {history.achievements.length === 0 ? (
+                <tr>
+                  <td colSpan={2}>No achievements logged yet.</td>
                 </tr>
-              ))}
+              ) : (
+                history.achievements.map((a) => (
+                  <tr key={a.id}>
+                    <td>{a.title}</td>
+                    <td>{a.date}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
 
@@ -180,36 +193,45 @@ function History() {
               </tr>
             </thead>
             <tbody>
-              {history.completedActivities.map((act, idx) => (
-                <tr key={idx}>
-                  <td>{act.date}</td>
-                  <td>{act.activity}</td>
-                  <td>{act.co2Saved.toFixed(2)}</td>
+              {history.completedActivities.length === 0 ? (
+                <tr>
+                  <td colSpan={3}>No activities logged yet.</td>
                 </tr>
-              ))}
+              ) : (
+                history.completedActivities.map((act, idx) => (
+                  <tr key={idx}>
+                    <td>{act.date}</td>
+                    <td>{act.activity}</td>
+                    <td>{(act.co2Saved || 0).toFixed(2)}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
-        {/* RIGHT SIDEBAR */}
         <aside className="leaderboard-card leaderboard-sidebar-card">
           <h2>Your Insights</h2>
 
-          {/* Total CO2 */}
           <div className="summary-block">
             <div className="summary-label">Total CO₂ Saved (this period)</div>
             <div className="summary-value">{totalCo2Saved.toFixed(1)} kg</div>
           </div>
 
-          {/* LINE CHART */}
           <div className="summary-block">
             <div className="summary-label">Weekly CO₂ Saved</div>
             <div className="graph-card custom-line-chart">
-              <Line data={lineChartData} options={lineChartOptions} />
+              {history.co2Trend.length > 0 ? (
+                <Line data={lineChartData} options={lineChartOptions} />
+              ) : (
+                <div style={{ fontSize: 13, color: "#9ca3af" }}>
+                  Not enough data yet to show a trend.
+                </div>
+              )}
             </div>
           </div>
 
-          {/* CALENDAR */}
+          {/* Calendar */}
           <div className="summary-block">
             <div className="summary-label">Activity Calendar</div>
             <Calendar
