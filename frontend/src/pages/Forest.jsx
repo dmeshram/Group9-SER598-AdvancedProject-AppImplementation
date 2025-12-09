@@ -1,105 +1,132 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import * as THREE from "three";
+import { useAuth } from "../auth/AuthContext.jsx";
+import "../App.css";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+function Tree({ position }) {
+  return (
+    <group position={position}>
+      {/* trunk */}
+      <mesh position={[0, 0.4, 0]}>
+        <cylinderGeometry args={[0.12, 0.12, 0.8, 8]} />
+        <meshStandardMaterial color="#8b5a2b" />
+      </mesh>
+      {/* foliage */}
+      <mesh position={[0, 1.1, 0]}>
+        <icosahedronGeometry args={[0.5, 0]} />
+        <meshStandardMaterial color="#4ade80" />
+      </mesh>
+    </group>
+  );
+}
+
+function Ground() {
+  return (
+    <group>
+      {/* grass top */}
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[6, 0.3, 6]} />
+        <meshStandardMaterial color="#4ade80" />
+      </mesh>
+      <mesh position={[0, -0.55, 0]}>
+        <boxGeometry args={[6.2, 1, 6.2]} />
+        <meshStandardMaterial color="#78350f" />
+      </mesh>
+    </group>
+  );
+}
+
+function ForestScene({ treeCount }) {
+  const treePositions = useMemo(() => {
+    const positions = [];
+    const radius = 2.3;
+
+    for (let i = 0; i < treeCount; i++) {
+      const angle = (i / treeCount) * Math.PI * 2;
+      const r = radius * (0.4 + 0.6 * Math.random()); // a bit of jitter
+      const x = Math.cos(angle) * r * 0.6;
+      const z = Math.sin(angle) * r;
+      positions.push([x, 0.15, z]);
+    }
+    return positions;
+  }, [treeCount]);
+
+  return (
+    <>
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[4, 6, 3]} intensity={1.1} castShadow />
+      <hemisphereLight intensity={0.35} groundColor="#14532d" />
+
+      <Ground />
+
+      {treePositions.map((pos, idx) => (
+        <Tree key={idx} position={pos} />
+      ))}
+
+      <OrbitControls enablePan={false} minPolarAngle={0.8} maxPolarAngle={1.3} />
+    </>
+  );
+}
 
 export default function Forest() {
+  const { token } = useAuth();
+  const [treeCount, setTreeCount] = useState(6); // default small grove
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchSummary = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/home/summary`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+          console.error("Failed to fetch summary for forest:", res.status);
+          setLoading(false);
+          return;
+        }
+
+        const data = await res.json();
+        const fromPoints = Math.floor((data.totalPoints || 0) / 40); // 1 tree / 40 pts
+        const fromCo2 = Math.floor((data.co2SavedKg || 0) / 1.5);   // 1 tree / 1.5kg
+
+        let trees = Math.max(fromPoints, fromCo2);
+        trees = Math.min(Math.max(trees, 3), 40); // clamp between 3 and 40
+
+        setTreeCount(trees);
+      } catch (err) {
+        console.error("Error loading forest data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSummary();
+  }, [token]);
+
   return (
     <div className="forest-page">
+      {loading && (
+        <div className="forest-loading-overlay">
+          Growing your forest…
+        </div>
+      )}
       <Canvas
-        camera={{ position: [10, 8, 10], fov: 45 }}
-        dpr={[1, 2]}
-        className="forest-canvas"
+        camera={{ position: [6, 5, 6], fov: 45 }}
+        shadows
+        gl={{ alpha: true }}
+        style={{ background: "transparent" }}
       >
-        <ambientLight intensity={0.7} />
-        <directionalLight intensity={1.1} position={[5, 10, 2]} castShadow />
-
-        <Island />
-        <TreesOnIsland />
-
-        {/* ground shadow plane */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.61, 0]}>
-          <planeGeometry args={[30, 30]} />
-          <meshStandardMaterial color="#1a2733" />
-        </mesh>
-
-        <OrbitControls
-          enablePan={false}
-          minDistance={8}
-          maxDistance={14}
-          minPolarAngle={Math.PI / 4}
-          maxPolarAngle={Math.PI / 2.2}
-        />
+        <ForestScene treeCount={treeCount} />
       </Canvas>
     </div>
-  );
-}
-
-function Island() {
-  const dirtColor = "#5b3b22";
-  const grassColor = "#8ee077";
-
-  return (
-    <group rotation={[0, Math.PI / 4, 0]}>
-      <mesh position={[0, -0.6, 0]}>
-        <boxGeometry args={[6, 1.2, 6]} />
-        <meshStandardMaterial color={dirtColor} />
-      </mesh>
-
-      <mesh position={[0, 0.05, 0]}>
-        <boxGeometry args={[5.8, 0.1, 5.8]} />
-        <meshStandardMaterial color={grassColor} />
-      </mesh>
-    </group>
-  );
-}
-
-function Tree({ position = [0, 0, 0], scale = 1 }) {
-  const trunkColor = "#7b4a24";
-  const leavesColor = "#3cad4b";
-
-  return (
-    <group position={position} scale={scale}>
-      <mesh position={[0, 0.7, 0]}>
-        <cylinderGeometry args={[0.12, 0.18, 1.4, 8]} />
-        <meshStandardMaterial color={trunkColor} />
-      </mesh>
-
-      <mesh position={[0, 1.5, 0]}>
-        <sphereGeometry args={[0.6, 12, 12]} />
-        <meshStandardMaterial color={leavesColor} />
-      </mesh>
-
-      <mesh position={[0.15, 2.1, -0.05]}>
-        <sphereGeometry args={[0.45, 12, 12]} />
-        <meshStandardMaterial color={leavesColor} />
-      </mesh>
-    </group>
-  );
-}
-
-function TreesOnIsland() {
-  const positions = useMemo(
-    () => [
-      [-1.8, 0, -1.8],
-      [0, 0, -1.7],
-      [1.8, 0, -1.8],
-      [-2.1, 0, 0],
-      [-0.7, 0, 0.4],
-      [1.2, 0, 0.2],
-      [2.0, 0, 0.6],
-      [-1.2, 0, 1.6],
-      [0.5, 0, 1.8],
-      [2.0, 0, 1.6],
-    ],
-    []
-  );
-
-  return (
-    <group rotation={[0, Math.PI / 4, 0]}>
-      {positions.map((pos, idx) => (
-        <Tree key={idx} position={[pos[0], 0, pos[2]]} scale={0.9 + (idx % 3) * 0.05} />
-      ))}
-    </group>
   );
 }
