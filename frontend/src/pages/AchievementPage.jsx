@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useState } from "react";
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
@@ -10,12 +11,12 @@ import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
 
 import useLocalStorage from "../hooks/useLocalStorage";
-import { onActivity } from "../utils/activityBus";
+import { onActivity, emitActivity } from "../utils/activityBus";
 import "../App.css";
 
 const PRESET_GOALS = [
-    { id: "w1", title: "First Walk Instead of Driving", description: "Log your first walking action instead of driving.", required: 1, unit: "actions", activityType: "walking", icon: "🥇" },
-    { id: "w2", title: "5 Walks Instead of Driving", description: "Choose walking instead of driving 5 times.", required: 5, unit: "actions", activityType: "walking", icon: "🚶" },
+    { id: "w1", title: "First Walk Instead Of Driving", description: "Log your first walking action instead of driving.", required: 1, unit: "actions", activityType: "walking", icon: "🚶" },
+    { id: "w2", title: "5 Walks Instead Of Driving", description: "Choose walking instead of driving 5 times.", required: 5, unit: "actions", activityType: "walking", icon: "🥾" },
     { id: "w3", title: "10,000 Steps", description: "Accumulate 10,000 steps total.", required: 10000, unit: "steps", activityType: "walking", icon: "🏃" },
 
     { id: "c1", title: "First Cycle", description: "Log your first cycling activity.", required: 1, unit: "actions", activityType: "cycling", icon: "🚴" },
@@ -34,7 +35,6 @@ const PRESET_GOALS = [
     { id: "s1", title: "7-Day Green Streak", description: "Be active 7 days in a row (any dropdown action).", required: 7, unit: "days", activityType: "streak", icon: "🔥" }
 ];
 
-
 function percentOf(curr, req) {
     if (!req || req === 0) return 100;
     const p = Math.round((curr / req) * 100);
@@ -44,162 +44,195 @@ function percentOf(curr, req) {
 function todayDateISO() {
     return new Date().toISOString().slice(0, 10);
 }
-function addDaysISO(isoDate, days) {
-    const d = new Date(isoDate + "T00:00:00");
-    d.setDate(d.getDate() + days);
-    return d.toISOString().slice(0, 10);
-}
-function diffDaysISO(aIso, bIso) {
-    const a = new Date(aIso + "T00:00:00");
-    const b = new Date(bIso + "T00:00:00");
-    const ms = a - b;
-    return Math.round(ms / (24 * 60 * 60 * 1000));
-}
 
+function readTokenFromStorage() {
+    return (
+        localStorage.getItem("token") ||
+        localStorage.getItem("accessToken") ||
+        localStorage.getItem("authToken") ||
+        null
+    );
+}
 
 export default function AchievementPage() {
-
+    
     const [goals, setGoals] = useLocalStorage("ach_goals_v2", PRESET_GOALS);
 
+    
     const [progressMap, setProgressMap] = useLocalStorage("ach_progress_v2", {});
 
-    const [streakState, setStreakState] = useLocalStorage("ach_streak_v2", { lastDate: null, current: 0 });
-
-    useEffect(() => {
-        const unsub = onActivity((activity) => {
-            handleActivityEvent(activity);
-        });
-        return unsub;
-
-    }, [goals, progressMap, streakState]);
+   
+    const [loading, setLoading] = useState(true);
+    const [serverError, setServerError] = useState(null);
+    const [showAdd, setShowAdd] = useState(false);
+    const [newGoal, setNewGoal] = useState({ title: "", description: "", required: 1, unit: "actions", icon: "⭐" });
 
     useEffect(() => {
         setGoals(prev => {
             const byId = {};
-            (prev || []).forEach(g => byId[g.id] = g);
+            (prev || []).forEach(g => (byId[g.id] = g));
             PRESET_GOALS.forEach(pg => {
                 if (!byId[pg.id]) byId[pg.id] = pg;
             });
             return Object.values(byId);
         });
+        
     }, []);
 
-    function handleActivityEvent(activity) {
-        if (!activity || !activity.type) return;
-
-        const date = activity.date || todayDateISO();
-
-        updateStreak(date);
-
-        const updates = { ...progressMap };
-
-        const inc = (goalId, by = 1) => {
-            const cur = (updates[goalId]?.progress) || 0;
-            const unlocked = updates[goalId]?.unlockedAt;
-            const newProgress = cur + by;
-            updates[goalId] = { progress: newProgress, unlockedAt: unlocked || (newProgress >= getGoalReq(goalId) ? new Date().toISOString() : null) };
-        };
-
-        function getGoalReq(goalId) {
-            const g = goals.find(x => x.id === goalId);
-            return g ? g.required : Infinity;
-        }
-
-        // Handle each activity type
-        switch (activity.type) {
-            case "walking": {
-                // if value provided and looks like steps use that, otherwise count as action
-                const val = Number(activity.value) || 1;
-                // add to steps-based goal (w3) and action-based goals (w1,w2)
-                const stepsGoal = goals.find(g => g.id === "w3");
-                if (stepsGoal && stepsGoal.required > 1) {
-                    // if activity.value is big (likely steps) add that value, else if val===1 treat as action and no steps increase
-                    if (Number(activity.value) && Number(activity.value) > 1) inc("w3", Number(activity.value));
+   
+    useEffect(() => {
+        let mounted = true;
+        async function load() {
+            setLoading(true);
+            setServerError(null);
+            try {
+              
+                const masterRes = await fetch("/api/achievements/master");
+                const masterText = await masterRes.text();
+                try {
+                    const masterJson = masterText ? JSON.parse(masterText) : [];
+                    
+                    setGoals(prev => {
+                        const byId = {};
+                        (prev || []).forEach(g => (byId[g.id] = g));
+                        (masterJson || []).forEach(m => (byId[m.id] = { ...m }));
+                        
+                        PRESET_GOALS.forEach(pg => {
+                            if (!byId[pg.id]) byId[pg.id] = pg;
+                        });
+                        return Object.values(byId);
+                    });
+                } catch (e) {
+                    console.warn("Could not parse /api/achievements/master response as JSON. Using local presets.");
                 }
-                // increment action goals
-                inc("w1", 1);
-                inc("w2", 1);
-                break;
-            }
 
-            case "cycling": {
-                // activity.value expected in km (number)
-                const km = Number(activity.value) || 1;
-                inc("c1", 1);
-                inc("c2", km);
-                break;
-            }
-
-            case "public_transport":
-            case "public-transport":
-            case "publictransport": {
-                inc("pt1", 1);
-                inc("pt2", 1);
-                break;
-            }
-
-            case "reusable": {
-                inc("rb1", 1);
-                break;
-            }
-
-            case "recycling": {
-                const items = Number(activity.value) || 1;
-                inc("r1", items);
-                inc("r2", items);
-                break;
-            }
-
-            case "other": {
-                inc("o1", Number(activity.value) || 1);
-                break;
-            }
-
-            default: {
-                if (goals.find(g => g.id === "o1")) inc("o1", Number(activity.value) || 1);
-                break;
+                const token = readTokenFromStorage();
+                if (token) {
+                    const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+                    const res = await fetch("/api/achievements", { headers });
+                    const txt = await res.text();
+                    if (!res.ok) {
+                        
+                        try {
+                            const jsonErr = JSON.parse(txt);
+                            throw new Error(jsonErr.message || JSON.stringify(jsonErr));
+                        } catch (parseErr) {
+                            throw new Error(txt || `HTTP ${res.status}`);
+                        }
+                    }
+                    const arr = txt ? JSON.parse(txt) : [];
+                    const newMap = { ...progressMap }; 
+                    (arr || []).forEach(row => {
+                        newMap[row.id] = {
+                            progress: Number(row.progress || 0),
+                            unlockedAt: row.unlockedAt || null
+                        };
+                    });
+                    if (mounted) setProgressMap(newMap);
+                } else {
+                }
+            } catch (err) {
+                console.error("Failed to load achievements:", err);
+                if (mounted) setServerError(String(err.message || err));
+            } finally {
+                if (mounted) setLoading(false);
             }
         }
-
-        setProgressMap(updates);
-    }
-
-    function updateStreak(newDateISO) {
-        const last = streakState.lastDate;
-        if (!last) {
-            const nextState = { lastDate: newDateISO, current: 1 };
-            setStreakState(nextState);
-            ensureStreakProgress(nextState.current);
-            return;
-        }
-
-        if (last === newDateISO) {
-            return;
-        }
-
-        const diff = diffDaysISO(newDateISO, last);
-        if (diff === 1) {
-            const next = streakState.current + 1;
-            const nextState = { lastDate: newDateISO, current: next };
-            setStreakState(nextState);
-            ensureStreakProgress(next);
-        } else if (diff <= 0) {
-        } else {
-            const nextState = { lastDate: newDateISO, current: 1 };
-            setStreakState(nextState);
-            ensureStreakProgress(1);
-        }
-    }
-
-    function ensureStreakProgress(currentDays) {
-        const updates = { ...progressMap };
-        const goalId = "s1";
-        const goalReq = (goals.find(g => g.id === goalId)?.required) || 7;
-        updates[goalId] = {
-            progress: currentDays,
-            unlockedAt: (currentDays >= goalReq) ? (updates[goalId]?.unlockedAt || new Date().toISOString()) : updates[goalId]?.unlockedAt || null
+        load();
+        return () => {
+            mounted = false;
         };
-        setProgressMap(updates);
+    }, []); 
+
+    useEffect(() => {
+        const unsub = onActivity((activity) => {
+            if (!activity || !activity.type) return;
+            // optimistic local update
+            const updates = { ...progressMap };
+
+            const inc = (goalId, by = 1) => {
+                const cur = (updates[goalId]?.progress) || 0;
+                const unlockedAt = updates[goalId]?.unlockedAt;
+                const newProgress = cur + by;
+                const goalReq = (goals.find(g => g.id === goalId)?.required) || Infinity;
+                updates[goalId] = {
+                    progress: newProgress,
+                    unlockedAt: unlockedAt || (newProgress >= goalReq ? new Date().toISOString() : null)
+                };
+            };
+
+            switch (activity.type) {
+                case "walking": {
+                    const val = Number(activity.value) || 1;
+                    if (val > 1) inc("w3", val); 
+                    inc("w1", 1);
+                    inc("w2", 1);
+                    break;
+                }
+                case "cycling": {
+                    const km = Number(activity.value) || 1;
+                    inc("c1", 1);
+                    inc("c2", km);
+                    break;
+                }
+                case "public_transport":
+                case "public-transport":
+                case "publictransport": {
+                    inc("pt1", 1);
+                    inc("pt2", 1);
+                    break;
+                }
+                case "reusable": {
+                    inc("rb1", 1);
+                    break;
+                }
+                case "recycling": {
+                    const items = Number(activity.value) || 1;
+                    inc("r1", items);
+                    inc("r2", items);
+                    break;
+                }
+                case "other": {
+                    inc("o1", Number(activity.value) || 1);
+                    break;
+                }
+                default: {
+                    // fallback: add to other goal
+                    inc("o1", Number(activity.value) || 1);
+                    break;
+                }
+            }
+            const date = activity.date || todayDateISO();
+            const streakGoalId = "s1";
+            if (!updates[streakGoalId]) updates[streakGoalId] = { progress: 1, unlockedAt: null };
+            const lastProgress = (progressMap[streakGoalId]?.progress) || 0;
+            if (activity.date && activity.date !== todayDateISO()) {
+            } else {
+                if (lastProgress === 0 || (updates[streakGoalId].progress === lastProgress)) {
+                    updates[streakGoalId] = { progress: lastProgress + 1, unlockedAt: (lastProgress + 1 >= (goals.find(g => g.id === streakGoalId)?.required || 7) ? new Date().toISOString() : null) };
+                }
+            }
+
+            setProgressMap(updates);
+            refreshProgressFromServer().catch(err => console.debug("background refresh failed:", err));
+        });
+
+        return () => unsub && typeof unsub === "function" && unsub();
+    }, [goals, progressMap]);
+
+    async function refreshProgressFromServer() {
+        const token = readTokenFromStorage();
+        if (!token) return;
+        const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+        const res = await fetch("/api/achievements", { headers });
+        if (!res.ok) throw new Error(`Server ${res.status}`);
+        const txt = await res.text();
+        const arr = txt ? JSON.parse(txt) : [];
+        const newMap = {};
+        (arr || []).forEach(row => {
+            newMap[row.id] = { progress: Number(row.progress || 0), unlockedAt: row.unlockedAt || null };
+        });
+        setProgressMap(prev => ({ ...prev, ...newMap }));
     }
 
     function getGoalProgress(id) {
@@ -215,25 +248,16 @@ export default function AchievementPage() {
         const updates = { ...progressMap };
         const cur = (updates[id]?.progress) || 0;
         const newProgress = cur + by;
-        updates[id] = { progress: newProgress, unlockedAt: updates[id]?.unlockedAt || (newProgress >= (goals.find(g => g.id === id)?.required || Infinity) ? new Date().toISOString() : null) };
+        const goalReq = (goals.find(g => g.id === id)?.required) || Infinity;
+        updates[id] = { progress: newProgress, unlockedAt: updates[id]?.unlockedAt || (newProgress >= goalReq ? new Date().toISOString() : null) };
         setProgressMap(updates);
-        if (id === "s1") {
-            setStreakState(prev => ({ lastDate: prev.lastDate || todayDateISO(), current: newProgress }));
-        }
     }
 
     function resetGoal(id) {
         const updates = { ...progressMap };
         delete updates[id];
         setProgressMap(updates);
-        if (id === "s1") {
-            setStreakState({ lastDate: null, current: 0 });
-        }
     }
-
-
-    const [showAdd, setShowAdd] = useState(false);
-    const [newGoal, setNewGoal] = useState({ title: "", description: "", required: 1, unit: "actions", icon: "⭐" });
 
     function addGoal() {
         if (!newGoal.title) return;
@@ -243,7 +267,6 @@ export default function AchievementPage() {
     }
 
     const goalsSorted = useMemo(() => {
-        // show preset goals first in defined order, then customs
         const presetIds = PRESET_GOALS.map(g => g.id);
         const preset = goals.filter(g => presetIds.includes(g.id)).sort((a, b) => presetIds.indexOf(a.id) - presetIds.indexOf(b.id));
         const custom = goals.filter(g => !presetIds.includes(g.id));
@@ -258,12 +281,16 @@ export default function AchievementPage() {
                     <div className="section-subtitle">Track your green milestones and unlocked badges</div>
                 </div>
                 <div className="achievements-actions">
-                    <Button variant="outline-primary" className="ach-btn ach-btn-outline" onClick={() => setShowAdd(true)}>Add Goal</Button>
-                    <Button variant="outline-danger" className="ach-btn" onClick={() => { if (confirm("Reset all achievement progress?")) { setProgressMap({}); setStreakState({ lastDate: null, current: 0 }); } }}>Reset Progress</Button>
+                    <Button variant="outline-primary" onClick={() => setShowAdd(true)}>Add Goal</Button>{' '}
+                    <Button variant="outline-danger" onClick={() => { if (confirm("Reset all achievement progress?")) { setProgressMap({}); } }}>Reset Progress</Button>
                 </div>
             </div>
 
-            <div className="achievements-grid">
+            {loading && <div style={{ marginBottom: 12 }}>Loading achievements…</div>}
+            {serverError && <div style={{ marginBottom: 12, color: "#fecaca" }}>Server: {serverError}</div>}
+
+            {/* Grid using Bootstrap row/cols: 3 cards per row on md+ */}
+            <Row>
                 {goalsSorted.map(goal => {
                     const curr = getGoalProgress(goal.id);
                     const req = goal.required || 1;
@@ -271,41 +298,44 @@ export default function AchievementPage() {
                     const pct = percentOf(curr, req);
 
                     return (
-                        <div key={goal.id} className="achievement-card">
-                            <div className="achievement-header">
-                                <div className={`achievement-icon ${unlocked ? "unlocked" : "locked"}`}>{goal.icon}</div>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                        <div className="achievement-title">{goal.title}</div>
-                                        {unlocked && <Badge bg="success" style={{ marginLeft: 8 }}>Unlocked</Badge>}
+                        <Col md={4} key={goal.id} className="mb-3">
+                            <Card className="achievements-card">
+                                <Card.Body>
+                                    <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
+                                        <div style={{ fontSize: 28 }}>{goal.icon}</div>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                <div style={{ fontWeight: 600 }}>{goal.title}</div>
+                                                {unlocked && <Badge bg="success">Unlocked</Badge>}
+                                            </div>
+                                            {goal.description && <div className="text-muted" style={{ fontSize: 13 }}>{goal.description}</div>}
+                                        </div>
                                     </div>
-                                    {goal.description && <div className="achievement-desc">{goal.description}</div>}
-                                </div>
-                            </div>
 
-                            <div className="achievement-progress">
-                                {/* use bootstrap ProgressBar for consistency */}
-                                <ProgressBar now={pct} label={`${curr}/${req}`} />
-                                <div className="progress-label" style={{ marginTop: 8 }}>
-                                    {goal.unit ? `${curr} / ${req} ${goal.unit}` : `${curr} / ${req}`}
-                                </div>
-                            </div>
+                                    <div style={{ marginTop: 8 }}>
+                                        <ProgressBar now={pct} label={`${curr}/${req}`} />
+                                        <div className="progress-label" style={{ marginTop: 8 }}>
+                                            {goal.unit ? `${curr} / ${req} ${goal.unit}` : `${curr} / ${req}`}
+                                        </div>
+                                    </div>
 
-                            <div className="achievement-actions">
-                                {!unlocked ? (
-                                    <>
-                                        <Button size="sm" variant="outline-secondary" className="ach-btn ach-btn-outline" onClick={() => incrementGoalManual(goal.id, 1)}>+1</Button>
-                                        <Button size="sm" variant="outline-secondary" className="ach-btn ach-btn-outline" onClick={() => { const by = Number(prompt("Enter amount to add:", "1")) || 0; if (by > 0) incrementGoalManual(goal.id, by); }}>+custom</Button>
-                                        <Button size="sm" variant="outline-secondary" className="ach-btn ach-btn-outline" onClick={() => resetGoal(goal.id)}>Reset</Button>
-                                    </>
-                                ) : (
-                                    <Button size="sm" variant="success" className="ach-btn ach-btn-success" disabled>🎉 Completed</Button>
-                                )}
-                            </div>
-                        </div>
+                                    <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                                        {!unlocked ? (
+                                            <>
+                                                <Button size="sm" variant="outline-secondary" onClick={() => incrementGoalManual(goal.id, 1)}>+1</Button>
+                                                <Button size="sm" variant="outline-secondary" onClick={() => { const by = Number(prompt("Enter amount to add:", "1")) || 0; if (by > 0) incrementGoalManual(goal.id, by); }}>+custom</Button>
+                                                <Button size="sm" variant="outline-secondary" onClick={() => resetGoal(goal.id)}>Reset</Button>
+                                            </>
+                                        ) : (
+                                            <Button size="sm" variant="success" disabled>🎉 Completed</Button>
+                                        )}
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        </Col>
                     );
                 })}
-            </div>
+            </Row>
 
             <Modal show={showAdd} onHide={() => setShowAdd(false)} centered>
                 <Modal.Header closeButton>

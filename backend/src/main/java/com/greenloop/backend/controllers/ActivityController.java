@@ -1,5 +1,6 @@
 package com.greenloop.backend.controllers;
 
+import com.greenloop.backend.achievements.AchievementService;
 import com.greenloop.backend.activity.ActivityEntity;
 import com.greenloop.backend.activity.ActivityRepository;
 import com.greenloop.backend.activity.ActivityService;
@@ -23,15 +24,18 @@ public class ActivityController {
     private final ActivityService activityService;
     private final UserRepository userRepo;
     private final AuthTokenResolver tokenResolver;
+    private final AchievementService achievementService;
 
     public ActivityController(ActivityRepository activityRepo,
-                              ActivityService activityService,
-                              UserRepository userRepo,
-                              AuthTokenResolver tokenResolver) {
+            ActivityService activityService,
+            UserRepository userRepo,
+            AuthTokenResolver tokenResolver,
+            AchievementService achievementService) {
         this.activityRepo = activityRepo;
         this.activityService = activityService;
         this.userRepo = userRepo;
         this.tokenResolver = tokenResolver;
+        this.achievementService = achievementService;
     }
 
     private String extractBearer(String authHeader) {
@@ -46,18 +50,17 @@ public class ActivityController {
         var authUser = tokenResolver.resolve(token);
         Long userId = Long.valueOf(authUser.userId());
         return userRepo.findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED,
-                    "User not found"
-            ));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "User not found"));
     }
-    
+
     public record LogActivityRequest(
-            String type,  
+            String type,
             double amount,
-            String unit,   
-            LocalDate date
-    ) {}
+            String unit,
+            LocalDate date) {
+    }
 
     public record ActivityDto(
             Long id,
@@ -65,8 +68,8 @@ public class ActivityController {
             double amount,
             String unit,
             LocalDate date,
-            int points
-    ) {}
+            int points) {
+    }
 
     private ActivityDto toDto(ActivityEntity a) {
         return new ActivityDto(
@@ -75,14 +78,13 @@ public class ActivityController {
                 a.getAmount(),
                 a.getUnit(),
                 a.getDate(),
-                a.getPoints()
-        );
+                a.getPoints());
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ActivityDto logActivity(@RequestHeader("Authorization") String authHeader,
-                                   @RequestBody LogActivityRequest body) {
+            @RequestBody LogActivityRequest body) {
 
         UserEntity user = getCurrentUser(authHeader);
 
@@ -113,6 +115,7 @@ public class ActivityController {
         entity.setPoints(points);
 
         ActivityEntity saved = activityRepo.save(entity);
+        achievementService.processActivityForUser(user, saved);
         return toDto(saved);
     }
 
