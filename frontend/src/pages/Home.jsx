@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import {
+  addPendingActivity,
+  getPendingActivities,
+  setPendingActivities,
+} from "../utils/offlineQueue";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -64,6 +69,57 @@ export default function Home() {
     fetchDashboard();
   }, [isAuthenticated, token]);
 
+  useEffect(() => {
+    const syncPending = async () => {
+      if (!navigator.onLine || !token) return;
+
+      const pending = getPendingActivities();
+      if (!pending.length) return;
+
+      const successfullySent = [];
+      for (const act of pending) {
+        try {
+          const res = await fetch(`${API_BASE}/api/activities`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(act),
+          });
+          if (res.ok) {
+            const saved = await res.json();
+            successfullySent.push(act);
+            setRecentActivities((prev) => [saved, ...prev].slice(0, 5));
+          }
+        } catch (err) {
+          console.error("Failed to sync offline activity", err);
+        }
+      }
+
+      if (successfullySent.length) {
+        const stillPending = getPendingActivities().filter(
+          (act) =>
+            !successfullySent.some(
+              (s) =>
+                s.type === act.type &&
+                s.amount === act.amount &&
+                s.unit === act.unit &&
+                s.date === act.date
+            )
+        );
+        setPendingActivities(stillPending);
+        await refreshStats();
+      }
+    };
+
+    syncPending();
+
+    const handler = () => syncPending();
+    window.addEventListener("online", handler);
+    return () => window.removeEventListener("online", handler);
+  }, [token]);
+
   const handleLogActivity = async (e) => {
     e.preventDefault();
     setLogError("");
@@ -73,6 +129,33 @@ export default function Home() {
       setLogError("Please enter a positive value for amount.");
       return;
     }
+    const payload = {
+      type: activityType,
+      amount: Number(amount),
+      unit,
+      date,
+    };
+    if (!navigator.onLine) {
+      addPendingActivity(payload);
+      setRecentActivities((prev) => [
+        {
+          id: `local-${Date.now()}`,
+          type: activityType,
+          amount: Number(amount),
+          unit,
+          points: 0,
+          date,
+          createdAt: new Date().toISOString(),
+          _localOnly: true,
+        },
+        ...prev,
+      ]);
+
+      setLogMessage("Activity saved offline. It will sync when you’re back online.");
+      setAmount("");
+      return;
+    }
+
     setLogging(true);
     try {
       const res = await fetch(`${API_BASE}/api/activities`, {
@@ -112,6 +195,21 @@ export default function Home() {
       setLogError("Something went wrong. Please try again.");
     } finally {
       setLogging(false);
+    }
+  };
+
+  const refreshStats = async () => {
+    if (!token) return;
+    try {
+      const statsRes = await fetch(`${API_BASE}/api/home/summary`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (statsRes.ok) {
+        const data = await statsRes.json();
+        setStats(data);
+      }
+    } catch (e) {
+      console.error("Failed to refresh stats:", e);
     }
   };
 
