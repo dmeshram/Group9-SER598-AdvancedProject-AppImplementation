@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
@@ -11,8 +11,11 @@ import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
 
 import useLocalStorage from "../hooks/useLocalStorage";
-import { onActivity, emitActivity } from "../utils/activityBus";
+import { onActivity } from "../utils/activityBus";
+import { useAuth } from "../auth/AuthContext";
 import "../App.css";
+
+const API_BASE = import.meta.env.VITE_API_BASE || "";
 
 const PRESET_GOALS = [
     { id: "w1", title: "First Walk Instead Of Driving", description: "Log your first walking action instead of driving.", required: 1, unit: "actions", activityType: "walking", icon: "🚶" },
@@ -55,13 +58,9 @@ function readTokenFromStorage() {
 }
 
 export default function AchievementPage() {
-    
+    const { token, isAuthenticated } = useAuth();
     const [goals, setGoals] = useLocalStorage("ach_goals_v2", PRESET_GOALS);
-
-    
     const [progressMap, setProgressMap] = useLocalStorage("ach_progress_v2", {});
-
-   
     const [loading, setLoading] = useState(true);
     const [serverError, setServerError] = useState(null);
     const [showAdd, setShowAdd] = useState(false);
@@ -87,11 +86,10 @@ export default function AchievementPage() {
             setServerError(null);
             try {
               
-                const masterRes = await fetch("/api/achievements/master");
+                const masterRes = await fetch(`${API_BASE}/api/achievements/master`);
                 const masterText = await masterRes.text();
                 try {
                     const masterJson = masterText ? JSON.parse(masterText) : [];
-                    
                     setGoals(prev => {
                         const byId = {};
                         (prev || []).forEach(g => (byId[g.id] = g));
@@ -109,7 +107,7 @@ export default function AchievementPage() {
                 const token = readTokenFromStorage();
                 if (token) {
                     const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-                    const res = await fetch("/api/achievements", { headers });
+                    const res = await fetch(`${API_BASE}/api/achievements`, { headers });
                     const txt = await res.text();
                     if (!res.ok) {
                         
