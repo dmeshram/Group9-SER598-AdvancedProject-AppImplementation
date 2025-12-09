@@ -9,7 +9,7 @@ import './App.css'
 import ProfileSettings from './pages/ProfileSettings.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
 import History from "./pages/history.jsx";
-
+import Forest from './pages/Forest.jsx'
 import AchievementsPage from './pages/AchievementPage.jsx'
 import Landing from './pages/Landing.jsx'
 
@@ -28,6 +28,7 @@ function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/history" element={<History />} />
           <Route path="/achievements" element={<AchievementsPage />} />
+          <Route path="/forest" element={<Forest />} />
         </Routes>
       </div>
     </>
