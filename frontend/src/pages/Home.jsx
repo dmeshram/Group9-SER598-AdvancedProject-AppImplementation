@@ -21,7 +21,7 @@ export default function Home() {
 
   const [activityType, setActivityType] = useState("WALKING");
   const [amount, setAmount] = useState("");
-  const [unit, setUnit] = useState("minutes"); 
+  const [unit, setUnit] = useState("minutes");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [logging, setLogging] = useState(false);
   const [logError, setLogError] = useState("");
@@ -73,7 +73,6 @@ export default function Home() {
       setLogError("Please enter a positive value for amount.");
       return;
     }
-
     setLogging(true);
     try {
       const res = await fetch(`${API_BASE}/api/activities`, {
@@ -86,7 +85,7 @@ export default function Home() {
           type: activityType,
           amount: Number(amount),
           unit,
-          date, 
+          date,
         }),
       });
 
@@ -169,7 +168,7 @@ export default function Home() {
             </div>
             {recentActivities.length === 0 ? (
               <p className="panel-empty">
-                You haven&apos;t logged any activities yet today. Start with a short walk 
+                You haven&apos;t logged any activities yet today. Start with a short walk
               </p>
             ) : (
               <ul className="activity-list">

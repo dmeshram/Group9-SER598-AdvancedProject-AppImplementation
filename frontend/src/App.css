@@ -52,8 +52,8 @@
   padding: 1.75rem 2rem 2.3rem;
   border-radius: 1.25rem;
   background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.25), transparent 55%),
-              radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.26), transparent 55%),
-              rgba(15, 23, 42, 0.92);
+    radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.26), transparent 55%),
+    rgba(15, 23, 42, 0.92);
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.75);
   color: #e5e7eb;
 }
@@ -193,7 +193,7 @@
   border-radius: 0.9rem;
   border: 1px solid rgba(148, 163, 184, 0.7);
   background: radial-gradient(circle at top, rgba(34, 197, 94, 0.18), transparent 60%),
-              rgba(15, 23, 42, 0.99);
+    rgba(15, 23, 42, 0.99);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -510,23 +510,23 @@
 /* Profile page layout */
 .profile-page {
   /* override the global centering & give space for fixed navbar */
-    text-align: left;
-    max-width: 1100px;
-    margin: 5.5rem auto 3rem;
-    padding: 1.75rem 2rem 2.25rem;
-    border-radius: 1.25rem;
-    background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.25), transparent 55%),
-                radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.26), transparent 55%),
-                rgba(15, 23, 42, 0.92);
-    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.75);
-    color: #e5e7eb;
+  text-align: left;
+  max-width: 1100px;
+  margin: 5.5rem auto 3rem;
+  padding: 1.75rem 2rem 2.25rem;
+  border-radius: 1.25rem;
+  background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.25), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.26), transparent 55%),
+    rgba(15, 23, 42, 0.92);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.75);
+  color: #e5e7eb;
 }
 
 .page-title {
-    font-size: 1.7rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    margin-bottom: 0.35rem;
+  font-size: 1.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.35rem;
 }
 
 .profile-page input,
@@ -563,9 +563,9 @@
 }
 
 .section-subtitle {
-    font-size: 0.88rem;
-    opacity: 0.8;
-    margin-bottom: 1.4rem;
+  font-size: 0.88rem;
+  opacity: 0.8;
+  margin-bottom: 1.4rem;
 }
 
 .status-banner {
@@ -580,20 +580,20 @@
 
 /* Two-column layout */
 .profile-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.1fr);
-    gap: 1.5rem;
-    align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.1fr);
+  gap: 1.5rem;
+  align-items: flex-start;
 }
 
 /* Cards */
 .profile-card,
 .settings-card {
-    background: rgba(15, 23, 42, 0.96);
-    border-radius: 1rem;
-    padding: 1.4rem 1.6rem 1.7rem;
-    border: 1px solid rgba(148, 163, 184, 0.6);
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.7);
+  background: rgba(15, 23, 42, 0.96);
+  border-radius: 1rem;
+  padding: 1.4rem 1.6rem 1.7rem;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.7);
 }
 
 .profile-card h2,
@@ -644,7 +644,7 @@
   gap: 1rem;
 }
 
-.form-row > .form-group {
+.form-row>.form-group {
   flex: 1;
 }
 
@@ -682,7 +682,7 @@ select:focus {
   padding: 0.9rem 1rem 0.8rem;
   border: 1px solid rgba(148, 163, 184, 0.6);
   background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 65%),
-              rgba(15, 23, 42, 0.98);
+    rgba(15, 23, 42, 0.98);
   margin-bottom: 1.1rem;
 }
 
@@ -790,7 +790,7 @@ select:focus {
   padding: 20px;
   height: 250px;
   border-radius: 12px;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .react-calendar {
@@ -860,153 +860,333 @@ select:focus {
   gap: 3px;
 }
 
+/* ========= Achievement page (single-file replacement) =========
+   Drop this in place of your old achievement CSS.
+   Works with:
+   - JSX that renders .achievements-page, .achievements-header
+   - bootstrap <Row><Col md={4}> + <Card className="achievements-card">
+   - also supports .achievement-card markup
+   ============================================================ */
+
+/* Theme variables (easy to tweak) */
+:root {
+  --bg-panel: rgba(15, 23, 42, 0.92);
+  --card-bg: rgba(8, 12, 18, 0.72);
+  --card-border: rgba(148, 163, 184, 0.7);
+  --muted: rgba(203, 213, 245, 0.78);
+  --muted-2: rgba(156, 163, 175, 0.85);
+  --title: #ffffff;
+  --accent-start: #16a34a;
+  --accent-end: #22c55e;
+  --accent-contrast: #022c22;
+  --glass: linear-gradient(135deg, rgba(34, 197, 94, 0.06), rgba(16, 185, 129, 0.02));
+}
+
+/* Page shell (consistent with other pages) */
 .achievements-page {
   text-align: left;
   max-width: 1100px;
   margin: 5.5rem auto 3rem;
   padding: 1.75rem 2rem 2.3rem;
   border-radius: 1.25rem;
-  background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.25), transparent 55%),
-              radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.26), transparent 55%),
-              rgba(15, 23, 42, 0.92);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.75);
-  color: #e5e7eb;
-}
-
-@media (max-width: 992px) {
-  .achievements-page {
-    margin: 5rem 1rem 2.5rem;
-    padding: 1.35rem 1.4rem 1.8rem;
-  }
+  background:
+    radial-gradient(circle at top left, rgba(45, 212, 191, 0.25), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.18), transparent 55%),
+    var(--bg-panel);
+  box-shadow: 0 24px 60px rgba(2, 6, 10, 0.6);
+  color: var(--muted);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Header */
-
 .achievements-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 1.5rem;
-  margin-bottom: 1.6rem;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
 }
 
 .achievements-header .page-title {
-  margin-bottom: 0.25rem;
+  font-size: 1.6rem;
+  color: var(--title);
+  margin: 0 0 0.15rem 0;
+  font-weight: 700;
 }
 
-@media (max-width: 768px) {
-  .achievements-header {
-    flex-direction: column;
-    align-items: flex-start;
+.achievements-header .section-subtitle {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* top action buttons (keeps bootstrap look) */
+.achievements-actions>.btn {
+  margin-left: 0.5rem;
+  border-radius: 999px;
+}
+
+/* Grid (fallback if you prefer CSS grid)
+   Your React uses Row/Col; these rules won't conflict but are useful if you switch.*/
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 992px) {
+  .achievements-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-.achievements-actions {
+@media (max-width: 576px) {
+  .achievements-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Bootstrap Row/Col equal-height helper
+   ensures each column stretches so cards inside have equal height */
+.achievements-page .row>[class*="col-"] {
   display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-direction: column;
 }
 
-/* Cards & progress */
-
-.achievements-page .card {
-  background: rgba(15, 23, 42, 0.97);
+/* Card base (styles used by the Card in your JSX: className="achievements-card") */
+.achievements-card,
+.achievement-card {
+  background: rgba(7, 11, 15, 0.56);
+  /* slightly translucent so page gradient shows */
   border-radius: 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.7);
-  color: #e5e7eb;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 18px 40px rgba(2, 6, 10, 0.6);
+  color: var(--muted);
+  padding: 0;
+  /* use card-body padding instead */
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 320px;
+  /* consistent card height */
+  overflow: hidden;
+  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
-.achievements-page .card-title {
-  font-size: 0.98rem;
+.achievements-card:hover,
+.achievement-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 26px 60px rgba(2, 6, 10, 0.65);
+}
+
+/* Card body (Bootstrap card-body is used in JSX) */
+.achievements-card .card-body,
+.achievement-card .card-body {
+  padding: 1.2rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 auto;
+}
+
+/* Header row inside each card */
+.achievement-header,
+.achievements-card .achievement-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Icon block */
+.achievement-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  background: var(--glass);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.achievement-icon.unlocked {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(34, 197, 94, 0.04));
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(34, 197, 94, 0.10);
+}
+
+/* Title and description - high contrast white */
+.achievement-title,
+.achievements-card .achievement-title {
+  font-size: 1.02rem;
   font-weight: 600;
+  color: var(--title) !important;
+  line-height: 1.15;
 }
 
-.achievements-page .card-text {
-  font-size: 0.86rem;
-  color: #cbd5f5;
-  opacity: 0.9;
+.achievement-desc,
+.achievements-card .achievement-desc {
+  font-size: 0.92rem;
+  color: var(--muted) !important;
+  margin-top: 6px;
 }
 
-.achievements-page .text-muted,
-.achievements-page .card-subtitle,
-.achievements-page .card-text.text-muted {
-  color: #cbd5f5 !important;
-  opacity: 0.88;
+/* Progress area */
+.achievement-progress,
+.achievements-card .achievement-progress {
+  margin-top: 6px;
 }
 
-.achievements-page .progress {
+/* Force Bootstrap ProgressBar colors and label contrast */
+.achievements-card .progress,
+.achievement-card .progress {
   background: rgba(15, 23, 42, 0.9);
-  height: 0.55rem;
+  height: 0.6rem;
   border-radius: 999px;
+  overflow: hidden;
 }
 
-.achievements-page .progress-bar {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+.achievements-card .progress .progress-bar,
+.achievement-card .progress .progress-bar {
+  background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+  color: var(--accent-contrast);
+  font-weight: 700;
+  text-shadow: none;
 }
 
-.achievements-page .badge.bg-success {
-  background-color: #22c55e !important;
-  color: #022c22;
-  border-radius: 999px;
-  padding: 0.15rem 0.6rem;
-  font-size: 0.7rem;
-}
-
-/* Buttons within Achievements */
-
-.achievements-page .btn {
-  border-radius: 999px;
-  font-size: 0.86rem;
-  padding: 0.35rem 0.9rem;
+/* numeric progress labels */
+.achievements-card .progress-label,
+.achievement-card .progress-label {
+  margin-top: 0.6rem;
+  font-size: 0.9rem;
+  color: #e7eef6;
+  /* bright but slightly softer than pure white */
   font-weight: 500;
-  border-width: 1px;
 }
 
-/* Top-right header buttons */
-.achievements-page .btn-outline-primary {
-  color: #e5e7eb;
-  border-color: rgba(148, 163, 184, 0.9);
+/* Ensure small text inside card is readable */
+.achievements-card,
+.achievements-card * {
+  color: inherit;
+  -webkit-font-smoothing: antialiased;
+}
+
+.achievements-card .text-muted,
+.achievement-card .text-muted {
+  color: var(--muted) !important;
+}
+
+/* Actions row: pinned to the bottom of card */
+.achievements-card .btn-row,
+.achievement-actions,
+.achievements-card .achievement-actions {
+  margin-top: auto;
+  /* push to bottom */
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Buttons in cards */
+.achievements-card .btn,
+.achievement-card .btn {
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+.achievements-card .btn-outline-secondary,
+.achievement-card .btn-outline-secondary {
+  color: #e6eef6;
+  border-color: rgba(148, 163, 184, 0.36);
   background: transparent;
 }
 
-.achievements-page .btn-outline-primary:hover {
-  background: rgba(15, 23, 42, 0.96);
-  border-color: #22c55e;
-  color: #bbf7d0;
+.achievements-card .btn-success,
+.achievement-card .btn-success {
+  background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+  color: var(--accent-contrast);
+  border: none;
+  box-shadow: 0 10px 26px rgba(34, 197, 94, 0.12);
 }
 
-.achievements-page .btn-outline-danger {
-  color: #fecaca;
-  border-color: rgba(248, 113, 113, 0.9);
-  background: transparent;
+/* 'Unlocked' badge style */
+.achievements-card .badge.bg-success,
+.achievement-card .badge.bg-success {
+  background-color: var(--accent-end) !important;
+  color: var(--accent-contrast) !important;
+  border-radius: 999px;
+  padding: 0.18rem 0.5rem;
+  font-size: 0.72rem;
 }
 
-.achievements-page .btn-outline-danger:hover {
-  background: rgba(248, 113, 113, 0.12);
+/* Make small helper text (e.g. action counts) clearly visible */
+.achievements-card .small,
+.achievement-card .small,
+.achievements-card .card-text,
+.achievement-card .card-text {
+  color: #dfe8ee !important;
 }
 
-/* Buttons inside each card */
-.achievements-page .btn-outline-secondary {
-  color: #e5e7eb;
-  border-color: rgba(148, 163, 184, 0.8);
-  background: transparent;
+/* Card title wrapping & truncation avoidance */
+.achievement-title {
+  word-break: break-word;
 }
 
-.achievements-page .btn-outline-secondary:hover {
-  background: rgba(15, 23, 42, 0.96);
-  border-color: rgba(209, 213, 219, 0.95);
+/* Accessibility: increase contrast of interactive elements */
+.achievements-card a,
+.achievements-card button,
+.achievement-card a,
+.achievement-card button {
+  color: #eaf6ee;
 }
 
-.achievements-page .btn-success {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  border-color: transparent;
-  color: #022c22;
+/* Mobile responsiveness: smaller min-heights and spacing */
+@media (max-width: 992px) {
+
+  .achievements-card,
+  .achievement-card {
+    min-height: 260px;
+  }
+
+  .achievement-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+    border-radius: 10px;
+  }
 }
 
-.achievements-page .btn-success:disabled {
-  opacity: 0.9;
+@media (max-width: 576px) {
+
+  .achievements-card,
+  .achievement-card {
+    min-height: 220px;
+  }
+
+  .achievements-card .card-body,
+  .achievement-card .card-body {
+    padding: 0.9rem;
+  }
 }
+
+/* optional: subtle divider between header + grid area */
+.achievements-header+.achievements-grid,
+.achievements-header+.row {
+  margin-top: 1rem;
+}
+
+/* final safety: ensure page-level subtitles / labels are readable white */
+.achievements-page .section-subtitle {
+  color: var(--muted) !important;
+}
+
+
 
 .graph-card {
   border-radius: 0.9rem;
@@ -1050,7 +1230,7 @@ select:focus {
 }
 
 .dashboard-page {
-  min-height: calc(100vh - 56px); 
+  min-height: calc(100vh - 56px);
   padding: 5rem 1.5rem 2.5rem;
   background: radial-gradient(circle at top left, #064e3b 0%, #020617 55%, #020617 100%);
   color: #e5e7eb;
@@ -1309,11 +1489,11 @@ select:focus {
 }
 
 .field-inline .field:first-child {
-  flex: 2;      
+  flex: 2;
 }
 
 .field-inline .field:last-child {
-  flex: 1;      
+  flex: 1;
 }
 
 .field input,
@@ -1434,4 +1614,24 @@ select:focus {
 
 .link-button:hover {
   color: #c7d2fe;
+}
+
+.forest-page {
+  width: 100%;
+  height: 100vh;
+  background: radial-gradient(circle at top, #0f172a 0%, #020617 60%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.forest-page canvas {
+  image-rendering: smooth;
+}
+
+Canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }

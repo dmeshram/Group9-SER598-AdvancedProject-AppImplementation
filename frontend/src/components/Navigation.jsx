@@ -27,6 +27,7 @@ export default function Navigation() {
                             <Nav.Link as={Link} to='leaderboard'>Leaderboard</Nav.Link>
                             <Nav.Link as={Link} to='achievements'>Achievements</Nav.Link>
                             <Nav.Link as={Link} to='history'>History</Nav.Link>
+                            <Nav.Link as={Link} to='forest'>Forest</Nav.Link>
                             <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
                         </>)}
                     </Nav>
