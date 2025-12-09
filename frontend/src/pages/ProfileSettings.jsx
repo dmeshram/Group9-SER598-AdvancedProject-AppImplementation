@@ -10,7 +10,8 @@ const EMPTY_PROFILE = {
 };
 
 const EMPTY_SETTINGS = {
-  theme: "light",
+  // theme is still kept for backend compatibility but not editable in UI
+  theme: "dark",
   emailNotifications: true,
   smsNotifications: false,
   newsletter: true,
@@ -30,15 +31,42 @@ export default function ProfileSettings() {
   const [localSettings, setLocalSettings] = useState(EMPTY_SETTINGS);
   const [statusMessage, setStatusMessage] = useState("");
 
-  // When global data finishes loading, copy it into local edit state
+  // Sync context data into local form state
   useEffect(() => {
     if (profile) {
-      setLocalProfile((prev) => ({ ...prev, ...profile }));
+      setLocalProfile({
+        name: profile.name ?? "",
+        email: profile.email ?? "",
+        role: profile.role ?? "",
+        organization: profile.organization ?? "",
+        bio: profile.bio ?? "",
+      });
     }
+
     if (settings) {
-      setLocalSettings((prev) => ({ ...prev, ...settings }));
+      setLocalSettings({
+        theme: settings.theme ?? "dark",
+        emailNotifications:
+          settings.emailNotifications ?? true,
+        smsNotifications: settings.smsNotifications ?? false,
+        newsletter: settings.newsletter ?? true,
+        language: settings.language ?? "en",
+      });
     }
   }, [profile, settings]);
+
+  const handleProfileChange = (e) => {
+    const { name, value } = e.target;
+    setLocalProfile((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSettingsChange = (e) => {
+    const { name, type, checked } = e.target;
+    setLocalSettings((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : prev[name],
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,19 +82,6 @@ export default function ProfileSettings() {
       console.error("Failed to save profile", err);
       setStatusMessage("Failed to save profile.");
     }
-  };
-
-  const handleProfileChange = (e) => {
-    const { name, value } = e.target;
-    setLocalProfile((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSettingsChange = (e) => {
-    const { name, type, value, checked } = e.target;
-    setLocalSettings((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
   };
 
   return (
@@ -154,34 +169,7 @@ export default function ProfileSettings() {
         <section className="settings-card">
           <h2>Preferences</h2>
 
-          <div className="form-group">
-            <label htmlFor="theme">Theme</label>
-            <select
-              id="theme"
-              name="theme"
-              value={localSettings.theme}
-              onChange={handleSettingsChange}
-            >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-              <option value="system">System</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="language">Language</label>
-            <select
-              id="language"
-              name="language"
-              value={localSettings.language}
-              onChange={handleSettingsChange}
-            >
-              <option value="en">English</option>
-              <option value="es">Spanish</option>
-              <option value="fr">French</option>
-              {/* add more as needed */}
-            </select>
-          </div>
+          {/* Theme + language removed from UI on purpose */}
 
           <fieldset className="settings-group">
             <legend>Notifications</legend>

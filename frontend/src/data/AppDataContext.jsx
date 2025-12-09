@@ -1,36 +1,104 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { useAuth } from "../auth/AuthContext.jsx";
 
 const DataContext = createContext(null);
 
 const VIEW_OPTIONS = ["This week", "This month", "All time"];
-const VIEW_PARAM_MAP = {
-  "This week": "week",
-  "This month": "month",
-  "All time": "all",
-};
+const DEFAULT_VIEW = "All time";
+
+function getViewKey(label) {
+  switch (label) {
+    case "This week":
+      return "week";
+    case "This month":
+      return "month";
+    case "All time":
+    default:
+      return "all";
+  }
+}
 
 export function DataProvider({ children }) {
-  // LEADERBOARD STATE
-  const [leaderboardView, setLeaderboardViewState] = useState("All time");
-  const [leaderboardUsers, setLeaderboardUsers] = useState([]);
-  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
-  const [leaderboardError, setLeaderboardError] = useState(null);
+  const { token, user } = useAuth();
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
-  // PROFILE STATE
+  // ---- PROFILE STATE ----
   const [profile, setProfile] = useState(null);
   const [settings, setSettings] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState(null);
 
-  const baseUrl = import.meta.env.VITE_API_BASE_URL;
+  // ---- LEADERBOARD STATE ----
+  const [leaderboardData, setLeaderboardData] = useState({
+    week: [],
+    month: [],
+    all: [],
+  });
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [leaderboardError, setLeaderboardError] = useState(null);
+  const [leaderboardView, setLeaderboardViewState] = useState(DEFAULT_VIEW);
 
-  // ---- PROFILE ----
+  const currentUserEmail =
+    user && user.email ? user.email.toLowerCase() : null;
+
+  // 🔒 Force the whole app to stay on the dark theme
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("theme-light");
+    root.classList.add("theme-dark");
+  }, []);
+
+  // Map raw API response -> UI model, and mark isCurrentUser
+  const mapLeaderboardUsers = useCallback(
+    (data) =>
+      (data.users ?? []).map((u) => {
+        const email = u.email ?? "";
+        const emailLower = email.toLowerCase();
+        const isCurrent =
+          currentUserEmail && emailLower
+            ? emailLower === currentUserEmail
+            : false;
+
+        return {
+          userId: u.id,
+          displayName:
+            u.name && u.name.trim().length > 0
+              ? u.name
+              : email
+              ? email.split("@")[0]
+              : "Anonymous",
+          email,
+          weeklyPoints: u.weeklyPoints ?? 0,
+          totalCo2Saved: u.totalCarbonSavedKg ?? 0,
+          streakDays: u.streakDays ?? 0,
+          completedGoals: u.completedGoals ?? 0,
+          level: u.level ?? "",
+          percentile: u.percentile ?? null,
+          rank: u.rank ?? null,
+          isCurrentUser: isCurrent,
+        };
+      }),
+    [currentUserEmail]
+  );
+
+  // ---------- PROFILE LOAD / SAVE ----------
   const loadProfile = useCallback(async () => {
+    if (!token) return;
+
     setProfileLoading(true);
     setProfileError(null);
     try {
       const res = await fetch(`${baseUrl}/api/profile`, {
         method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -42,13 +110,19 @@ export function DataProvider({ children }) {
     } finally {
       setProfileLoading(false);
     }
-  }, [baseUrl]);
+  }, [baseUrl, token]);
 
   const saveProfile = useCallback(
     async ({ profile: profilePayload, settings: settingsPayload }) => {
+      if (!token) {
+        throw new Error("Not authenticated");
+      }
       const res = await fetch(`${baseUrl}/api/profile`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           profile: profilePayload,
           settings: settingsPayload,
@@ -60,58 +134,108 @@ export function DataProvider({ children }) {
       if (updated.settings) setSettings(updated.settings);
       return updated;
     },
-    [baseUrl]
+    [baseUrl, token]
   );
 
-  // ---- LEADERBOARD ----
-  const mapLeaderboardUsers = (data) =>
-    (data.users ?? []).map((u) => ({
-      userId: u.id,
-      displayName:
-        u.name && u.name.trim().length > 0
-          ? u.name
-          : u.email
-          ? u.email.split("@")[0]
-          : "Anonymous",
-      weeklyPoints: u.weeklyPoints ?? 0,
-      totalCo2Saved: u.totalCarbonSavedKg ?? 0,
-      streakDays: u.streakDays ?? 0,
-      rank: u.rank ?? null,
-      isCurrentUser: u.isCurrentUser ?? false,
-    }));
+  // ---------- LEADERBOARD PRELOAD (ALL 3 VIEWS ONCE) ----------
+  useEffect(() => {
+    if (!token) {
+      // Clear everything on logout
+      setProfile(null);
+      setSettings(null);
+      setLeaderboardData({ week: [], month: [], all: [] });
+      setLeaderboardViewState(DEFAULT_VIEW);
+      return;
+    }
 
-  const loadLeaderboard = useCallback(
-    async (viewLabel) => {
-      const view = viewLabel || leaderboardView;
-      const viewParam = VIEW_PARAM_MAP[view] || "week";
+    // Load profile for current user
+    loadProfile();
 
+    const fetchView = async (viewKey) => {
+      const url = `${baseUrl}/api/leaderboard?view=${viewKey}&limit=50&offset=0`;
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status} for view=${viewKey}`);
+      const data = await res.json();
+      return mapLeaderboardUsers(data);
+    };
+
+    const fetchAllViews = async () => {
       setLeaderboardLoading(true);
       setLeaderboardError(null);
-
       try {
-        const res = await fetch(
-          `${baseUrl}/api/leaderboard?view=${viewParam}&limit=50&offset=0`,
-          { method: "GET" }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setLeaderboardUsers(mapLeaderboardUsers(data));
-        setLeaderboardViewState(view);
+        const [allUsers, weekUsers, monthUsers] = await Promise.all([
+          fetchView("all"),
+          fetchView("week"),
+          fetchView("month"),
+        ]);
+
+        setLeaderboardData({
+          all: allUsers,
+          week: weekUsers,
+          month: monthUsers,
+        });
       } catch (err) {
         console.error("Failed to load leaderboard", err);
-        setLeaderboardError("Could not load leaderboard. Please try again later.");
+        setLeaderboardError(
+          "Could not load leaderboard. Please try again later."
+        );
       } finally {
         setLeaderboardLoading(false);
       }
-    },
-    [baseUrl, leaderboardView]
-  );
+    };
 
-  // ---- INITIAL LOAD (once, at app start) ----
-  useEffect(() => {
-    loadProfile();
-    loadLeaderboard("All time");
-  }, [loadProfile, loadLeaderboard]);
+    fetchAllViews();
+  }, [token, baseUrl, loadProfile, mapLeaderboardUsers]);
+
+  // Derived users for the currently selected view
+  const currentViewKey = getViewKey(leaderboardView);
+  const leaderboardUsers = leaderboardData[currentViewKey] ?? [];
+
+  // Optional manual refresh: refetch all 3 views again
+  const refreshLeaderboard = useCallback(async () => {
+    if (!token) return;
+
+    const fetchView = async (viewKey) => {
+      const url = `${baseUrl}/api/leaderboard?view=${viewKey}&limit=50&offset=0`;
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status} for view=${viewKey}`);
+      const data = await res.json();
+      return mapLeaderboardUsers(data);
+    };
+
+    setLeaderboardLoading(true);
+    setLeaderboardError(null);
+    try {
+      const [allUsers, weekUsers, monthUsers] = await Promise.all([
+        fetchView("all"),
+        fetchView("week"),
+        fetchView("month"),
+      ]);
+
+      setLeaderboardData({
+        all: allUsers,
+        week: weekUsers,
+        month: monthUsers,
+      });
+    } catch (err) {
+      console.error("Failed to refresh leaderboard", err);
+      setLeaderboardError(
+        "Could not refresh leaderboard. Please try again later."
+      );
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  }, [baseUrl, token, mapLeaderboardUsers]);
 
   const value = {
     // Profile data + actions
@@ -128,11 +252,9 @@ export function DataProvider({ children }) {
     leaderboardError,
     leaderboardView,
     setLeaderboardView: (viewLabel) => {
-      // change view and reload from API
-      loadLeaderboard(viewLabel);
+      setLeaderboardViewState(viewLabel);
     },
-    refreshLeaderboard: () => loadLeaderboard(),
-
+    refreshLeaderboard,
     viewOptions: VIEW_OPTIONS,
   };
 

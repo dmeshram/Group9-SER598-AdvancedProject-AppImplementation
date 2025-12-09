@@ -14,9 +14,7 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class LeaderboardService {
@@ -41,29 +39,43 @@ public class LeaderboardService {
         String normalizedView = normalizeView(view);
         LocalDate today = LocalDate.now();
 
-        // Determine scoring window
-        LocalDate rangeStart = switch (normalizedView) {
-            case "month" -> today.with(TemporalAdjusters.firstDayOfMonth());
-            case "all" -> null; // all-time
-            default -> today.with(DayOfWeek.MONDAY); // current week (Monday -> today)
-        };
+        // Determine date window
+        LocalDate rangeStart;
+        switch (normalizedView) {
+            case "month" -> rangeStart = today.withDayOfMonth(1);
+            case "all" -> rangeStart = null; // all-time
+            case "week" -> rangeStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+            default -> rangeStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        }
+
+        if (limit <= 0) {
+            limit = 50;
+        }
+        if (offset < 0) {
+            offset = 0;
+        }
 
         List<UserEntity> allUsers = userRepository.findAll();
         List<LeaderboardUserDto> rows = new ArrayList<>();
 
-        for (UserEntity user : allUsers) {
-            // Get all activities once (for streak)
-            List<ActivityEntity> allActivities = activityRepository.findByUserOrderByDateAsc(user);
+        // For "all" view we also include users with zero activity / zero points
+        boolean includeZeroActivityUsers = "all".equals(normalizedView);
 
-            if (allActivities.isEmpty()) {
-                // No activity at all -> skip user for now
+        for (UserEntity user : allUsers) {
+            // All activities for streak and all-time
+            List<ActivityEntity> allActivities =
+                    activityRepository.findByUserOrderByDateAsc(user);
+
+            if (allActivities.isEmpty() && !includeZeroActivityUsers) {
+                // For week/month we hide users with absolutely no activity
                 continue;
             }
 
-            // For scoring, filter to selected window
+            // Activities that count for the requested window
             List<ActivityEntity> scoringActivities = new ArrayList<>();
             if (rangeStart == null) {
-                scoringActivities.addAll(allActivities); // all-time
+                // all-time
+                scoringActivities.addAll(allActivities);
             } else {
                 for (ActivityEntity a : allActivities) {
                     LocalDate d = a.getDate();
@@ -77,11 +89,6 @@ public class LeaderboardService {
                     .mapToInt(ActivityEntity::getPoints)
                     .sum();
 
-            if (points == 0) {
-                // no points in this period -> don't show on leaderboard
-                continue;
-            }
-
             double co2SavedKg = scoringActivities.stream()
                     .mapToDouble(a -> estimateCo2SavedKg(
                             a.getActivityType(),
@@ -91,6 +98,11 @@ public class LeaderboardService {
                     .sum();
 
             int streakDays = computeCurrentStreak(allActivities);
+
+            if (!includeZeroActivityUsers && points == 0) {
+                // For week / month we still hide zero-point users in that window
+                continue;
+            }
 
             rows.add(new LeaderboardUserDto(
                     user.getId(),
@@ -102,12 +114,12 @@ public class LeaderboardService {
                     0,       // completedGoals – not modeled yet
                     null,    // level – not modeled yet
                     0.0,     // percentile – not used yet
-                    0,       // rank – we fill after sorting
-                    false    // isCurrentUser – can be wired when auth is ready
+                    0,       // rank – will be set after sorting
+                    false    // isCurrentUser – set on frontend using email
             ));
         }
 
-        // Sort by points descending
+        // Sort by points (descending)
         rows.sort(Comparator.comparingInt(LeaderboardUserDto::weeklyPoints).reversed());
 
         long total = rows.size();
@@ -158,41 +170,65 @@ public class LeaderboardService {
     /**
      * Current streak = number of consecutive days (counting back from today)
      * where the user logged at least one activity.
+     *
+     * Assumes allActivities are ordered by date ascending
+     * (as returned by findByUserOrderByDateAsc).
      */
-    private int computeCurrentStreak(List<ActivityEntity> activities) {
-        if (activities.isEmpty()) {
+    private int computeCurrentStreak(List<ActivityEntity> allActivities) {
+        if (allActivities.isEmpty()) {
             return 0;
         }
 
-        Set<LocalDate> daysWithActivity = new HashSet<>();
-        for (ActivityEntity a : activities) {
-            daysWithActivity.add(a.getDate());
-        }
-
+        LocalDate today = LocalDate.now();
         int streak = 0;
-        LocalDate cursor = LocalDate.now();
+        LocalDate cursor = today;
+        int index = allActivities.size() - 1;
 
-        while (daysWithActivity.contains(cursor)) {
-            streak++;
-            cursor = cursor.minusDays(1);
+        while (index >= 0) {
+            LocalDate day = allActivities.get(index).getDate();
+
+            if (day.isAfter(cursor)) {
+                // Skip any future-dated records (shouldn't normally happen)
+                index--;
+                continue;
+            }
+
+            if (day.isEqual(cursor)) {
+                // At least one activity on this day
+                streak++;
+
+                // Skip all activities for this same day
+                while (index >= 0 &&
+                        allActivities.get(index).getDate().isEqual(day)) {
+                    index--;
+                }
+
+                // Move to previous day
+                cursor = cursor.minusDays(1);
+            } else {
+                // We hit a gap day with no activity ⇒ streak ends
+                break;
+            }
         }
 
         return streak;
     }
 
     /**
-     * Copy of the CO₂ estimation logic from ActivityService,
-     * so the leaderboard numbers are consistent with the home summary.
+     * Very rough CO₂-saved estimate based on activity type + distance.
      */
     private double estimateCo2SavedKg(ActivityType type, double amount, String unit) {
         double km;
 
-        if ("km".equalsIgnoreCase(unit)) {
+        if (unit != null && unit.equalsIgnoreCase("km")) {
             km = amount;
-        } else if ("minutes".equalsIgnoreCase(unit)) {
-            km = (amount / 60.0) * 5.0; // assume ~5km/h
+        } else if (unit != null &&
+                (unit.equalsIgnoreCase("minutes") || unit.equalsIgnoreCase("mins"))) {
+            // Approx: 6 km/h ≈ 0.1 km per minute
+            km = amount * 0.1;
         } else {
-            km = amount * 0.2; // fallback approximation
+            // Fallback approximation if unit is unknown
+            km = amount * 0.2;
         }
 
         double perKmFactor = switch (type) {
