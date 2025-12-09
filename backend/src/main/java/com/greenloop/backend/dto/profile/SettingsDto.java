@@ -1,9 +1,9 @@
 package com.greenloop.backend.dto.profile;
 
 public record SettingsDto(
-        String theme,                 // "light", "dark", "system"
+        String theme,
         boolean emailNotifications,
         boolean smsNotifications,
         boolean newsletter,
-        String language               // e.g. "en"
+        String language
 ) {}

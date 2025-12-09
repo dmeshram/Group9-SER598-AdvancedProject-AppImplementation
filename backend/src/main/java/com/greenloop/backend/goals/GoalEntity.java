@@ -22,7 +22,7 @@ public class GoalEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_user_id")
-    private UserEntity ownerUser;   // null for system-defined goals
+    private UserEntity ownerUser;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

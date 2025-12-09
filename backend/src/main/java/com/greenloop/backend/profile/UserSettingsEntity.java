@@ -8,18 +8,18 @@ import jakarta.persistence.*;
 public class UserSettingsEntity {
 
     @Id
-    private Long userId;   // same as UserEntity.id
+    private Long userId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
-    private String theme;                // "light", "dark", "system"
+    private String theme;
     private boolean emailNotifications;
     private boolean smsNotifications;
     private boolean newsletter;
-    private String language;            // "en"
+    private String language;
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }

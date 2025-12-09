@@ -66,6 +66,10 @@
   margin-bottom: 1.75rem;
 }
 
+.leaderboard-view-toggle button {
+  margin-right: 5px;
+}
+
 @media (max-width: 768px) {
   .leaderboard-page {
     margin: 5rem 1rem 2.5rem;
@@ -78,8 +82,6 @@
   }
 }
 
-/* Reuse existing page-title and section-subtitle styles from Profile page
-   If you don't have them yet, you can define: */
 .page-title {
   font-size: 1.6rem;
   margin-bottom: 0.25rem;
@@ -604,6 +606,17 @@
 .profile-card .section-subtitle,
 .settings-card .section-subtitle {
   margin-bottom: 1.1rem;
+}
+
+.settings-card-header button {
+ margin: auto;
+ margin-top: 5px;
+ margin-bottom: 10px;
+}
+
+.form-actions button {
+ margin-top: 5px;
+ margin-right: 5px;
 }
 
 /* Avatar */

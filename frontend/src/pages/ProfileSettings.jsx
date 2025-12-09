@@ -1,16 +1,16 @@
-// src/pages/ProfileSettings.jsx
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useAppData } from "../data/AppDataContext.jsx";
 
-const initialProfile = {
-  name: "Oscar Piastri",
-  email: "oscar.piastri@example.com",
-  role: "Driver",
-  organization: "McLaren Racing",
-  bio: "Deserve to win, forced to be second.",
+const EMPTY_PROFILE = {
+  name: "",
+  email: "",
+  role: "",
+  organization: "",
+  bio: "",
 };
 
-const initialSettings = {
-  theme: "light",
+const EMPTY_SETTINGS = {
+  theme: "dark",
   emailNotifications: true,
   smsNotifications: false,
   newsletter: true,
@@ -18,68 +18,104 @@ const initialSettings = {
 };
 
 export default function ProfileSettings() {
-  const [profile, setProfile] = useState(initialProfile);
-  const [settings, setSettings] = useState(initialSettings);
+  const {
+    profile,
+    settings,
+    profileLoading,
+    profileError,
+    saveProfile,
+  } = useAppData();
+
+  const [localProfile, setLocalProfile] = useState(EMPTY_PROFILE);
+  const [localSettings, setLocalSettings] = useState(EMPTY_SETTINGS);
   const [statusMessage, setStatusMessage] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadProfile() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const baseUrl = import.meta.env.VITE_API_BASE_URL;
-        const res = await fetch(`${baseUrl}/api/profile`, {
-          method: "GET",
-          signal: controller.signal,
-        });
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const data = await res.json();
-        if (data.profile) setProfile(data.profile);
-        if (data.settings) setSettings(data.settings);
-      } catch (err) {
-        if (err.name === "AbortError") return;
-        console.error("Failed to load profile", err);
-        setError("Could not load profile. Using default values.");
-      } finally {
-        setLoading(false);
-      }
+    if (profile) {
+      setLocalProfile({
+        name: profile.name ?? "",
+        email: profile.email ?? "",
+        role: profile.role ?? "",
+        organization: profile.organization ?? "",
+        bio: profile.bio ?? "",
+      });
     }
 
-    loadProfile();
-    return () => controller.abort();
-  }, []);
+    if (settings) {
+      setLocalSettings({
+        theme: settings.theme ?? "dark",
+        emailNotifications:
+          settings.emailNotifications ?? true,
+        smsNotifications: settings.smsNotifications ?? false,
+        newsletter: settings.newsletter ?? true,
+        language: settings.language ?? "en",
+      });
+    }
+  }, [profile, settings]);
+
+  const handleProfileChange = (e) => {
+    if (!isEditing) return;
+    const { name, value } = e.target;
+    setLocalProfile((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSettingsChange = (e) => {
+    if (!isEditing) return;
+    const { name, type, checked } = e.target;
+    setLocalSettings((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : prev[name],
+    }));
+  };
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+    setStatusMessage("");
+  };
+
+  const handleCancel = () => {
+    if (profile) {
+      setLocalProfile({
+        name: profile.name ?? "",
+        email: profile.email ?? "",
+        role: profile.role ?? "",
+        organization: profile.organization ?? "",
+        bio: profile.bio ?? "",
+      });
+    } else {
+      setLocalProfile(EMPTY_PROFILE);
+    }
+
+    if (settings) {
+      setLocalSettings({
+        theme: settings.theme ?? "dark",
+        emailNotifications:
+          settings.emailNotifications ?? true,
+        smsNotifications: settings.smsNotifications ?? false,
+        newsletter: settings.newsletter ?? true,
+        language: settings.language ?? "en",
+      });
+    } else {
+      setLocalSettings(EMPTY_SETTINGS);
+    }
+
+    setIsEditing(false);
+    setStatusMessage("");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isEditing) return;
+
     try {
       setStatusMessage("Saving…");
-
-      const baseUrl = import.meta.env.VITE_API_BASE_URL;
-      const res = await fetch(`${baseUrl}/api/profile`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          profile,
-          settings,
-        }),
+      await saveProfile({
+        profile: localProfile,
+        settings: localSettings,
       });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const updated = await res.json();
-      if (updated.profile) setProfile(updated.profile);
-      if (updated.settings) setSettings(updated.settings);
-
       setStatusMessage("Profile updated successfully.");
+      setIsEditing(false);
       setTimeout(() => setStatusMessage(""), 3000);
     } catch (err) {
       console.error("Failed to save profile", err);
@@ -87,41 +123,27 @@ export default function ProfileSettings() {
     }
   };
 
-  const handleProfileChange = (e) => {
-    const { name, value } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSettingsChange = (e) => {
-    const { name, type, value, checked } = e.target;
-    setSettings((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
   return (
     <div className="profile-page">
       <h1 className="page-title">Profile &amp; Settings</h1>
 
-      {loading && <div className="status-banner">Loading your profile…</div>}
-      {error && (
-        <div className="status-banner status-banner--error">{error}</div>
+      {profileLoading && (
+        <div className="status-banner">Loading your profile…</div>
       )}
-      {statusMessage && <div className="status-banner">{statusMessage}</div>}
+      {profileError && (
+        <div className="status-banner status-banner--error">
+          {profileError}
+        </div>
+      )}
+      {statusMessage && (
+        <div className="status-banner">{statusMessage}</div>
+      )}
 
       <form className="profile-layout" onSubmit={handleSubmit}>
         {/* Left side – profile info */}
         <section className="profile-card">
-          <h2>Profile</h2>
-          <p className="section-subtitle">Update your personal information.</p>
-
-          <div className="avatar-circle">
-            {profile.name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .toUpperCase()}
+          <div className="profile-card-header">
+            <h2>Profile</h2>
           </div>
 
           <div className="form-group">
@@ -129,10 +151,11 @@ export default function ProfileSettings() {
             <input
               id="name"
               name="name"
-              value={profile.name}
+              value={localProfile.name}
               onChange={handleProfileChange}
               type="text"
               required
+              readOnly={!isEditing}
             />
           </div>
 
@@ -141,10 +164,11 @@ export default function ProfileSettings() {
             <input
               id="email"
               name="email"
-              value={profile.email}
+              value={localProfile.email}
               onChange={handleProfileChange}
               type="email"
               required
+              readOnly={!isEditing}
             />
           </div>
 
@@ -154,9 +178,10 @@ export default function ProfileSettings() {
               <input
                 id="role"
                 name="role"
-                value={profile.role}
+                value={localProfile.role}
                 onChange={handleProfileChange}
                 type="text"
+                readOnly={!isEditing}
               />
             </div>
 
@@ -165,9 +190,10 @@ export default function ProfileSettings() {
               <input
                 id="organization"
                 name="organization"
-                value={profile.organization}
+                value={localProfile.organization}
                 onChange={handleProfileChange}
                 type="text"
+                readOnly={!isEditing}
               />
             </div>
           </div>
@@ -177,34 +203,30 @@ export default function ProfileSettings() {
             <textarea
               id="bio"
               name="bio"
-              value={profile.bio}
+              value={localProfile.bio}
               onChange={handleProfileChange}
               rows={4}
-              placeholder="Tell us a bit about yourself…"
+              readOnly={!isEditing}
             />
           </div>
         </section>
 
         {/* Right side – settings */}
         <section className="settings-card">
-          <h2>Account Settings</h2>
-          <p className="section-subtitle">
-            Manage how your account looks and behaves.
-          </p>
-
-          <div className="form-group">
-            <label htmlFor="theme">Theme</label>
-            <select
-              id="theme"
-              name="theme"
-              value={settings.theme}
-              onChange={handleSettingsChange}
-            >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-              <option value="system">System default</option>
-            </select>
+          <div className="settings-card-header">
+            <h2>Preferences</h2>
+            {!isEditing && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleEditClick}
+              >
+                Edit profile
+              </button>
+            )}
           </div>
+
+          {/* Theme & language are not editable in the UI */}
 
           <fieldset className="settings-group">
             <legend>Notifications</legend>
@@ -213,8 +235,9 @@ export default function ProfileSettings() {
               <input
                 type="checkbox"
                 name="emailNotifications"
-                checked={settings.emailNotifications}
+                checked={localSettings.emailNotifications}
                 onChange={handleSettingsChange}
+                disabled={!isEditing}
               />
               <span>Email notifications</span>
             </label>
@@ -223,8 +246,9 @@ export default function ProfileSettings() {
               <input
                 type="checkbox"
                 name="smsNotifications"
-                checked={settings.smsNotifications}
+                checked={localSettings.smsNotifications}
                 onChange={handleSettingsChange}
+                disabled={!isEditing}
               />
               <span>SMS notifications</span>
             </label>
@@ -233,44 +257,33 @@ export default function ProfileSettings() {
               <input
                 type="checkbox"
                 name="newsletter"
-                checked={settings.newsletter}
+                checked={localSettings.newsletter}
                 onChange={handleSettingsChange}
+                disabled={!isEditing}
               />
-              <span>Monthly sustainability newsletter</span>
+              <span>Product updates &amp; newsletter</span>
             </label>
           </fieldset>
 
-          <div className="form-group">
-            <label htmlFor="language">Language</label>
-            <select
-              id="language"
-              name="language"
-              value={settings.language}
-              onChange={handleSettingsChange}
-            >
-              <option value="en">English</option>
-              <option value="es">Spanish</option>
-              <option value="hi">Hindi</option>
-              <option value="zh">Chinese</option>
-            </select>
-          </div>
-
-          <div className="actions-row">
-            <button type="submit" className="primary-button">
-              Save changes
-            </button>
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() => {
-                setProfile(initialProfile);
-                setSettings(initialSettings);
-                setStatusMessage("Reverted to last saved values.");
-                setTimeout(() => setStatusMessage(""), 3000);
-              }}
-            >
-              Reset
-            </button>
+          <div className="form-actions">
+            {isEditing && (
+              <>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={profileLoading}
+                >
+                  Save changes
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </button>
+              </>
+            )}
           </div>
         </section>
       </form>
